@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import doclist from '@/components/doclist.vue'
+import DocListApi from '@/components/docListAPI.vue'
 </script>
 
 <template>
   <main>
-    <doclist title="Doc List"></doclist>
+    <doc-list-api title="Doc List"></doc-list-api>
   </main>
 </template>
 

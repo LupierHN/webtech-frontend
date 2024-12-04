@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import TestCompositionApiPage from '@/views/TestCompositionAPIPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -19,19 +18,9 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue')
     },
     {
-      path: '/test-options-api',
-      name: 'test-options-api',
-      component: () => import('../views/TestOptionsAPIPage.vue')
-    },
-    {
-      path: '/test-compositions-api',
-      name: 'test-compositions-api',
-      component: () => import('../views/TestCompositionAPIPage.vue')
-    },
-    {
       path: '/dashboard',
       name: 'dashboard',
-      component: () => import('../views/Dashboard.vue')
+      component: () => import('../views/DashboardView.vue')
     }
   ]
 })

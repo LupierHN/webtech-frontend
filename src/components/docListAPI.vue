@@ -40,7 +40,7 @@ function addDoc(title: string, content: string) {
     <li v-for="doc in doclist" :key="doc.id">
       <h2>{{ doc.title }}</h2>
       <p>{{ doc.content }}</p>
-      <pre>{{doc.id}}</pre>
+<!--      <pre>{{doc.id}}</pre>-->
       <button @click="removeDoc(doc.id)">Remove</button>
     </li>
   </ul>

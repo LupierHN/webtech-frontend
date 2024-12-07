@@ -1,6 +1,21 @@
 <script setup lang="ts">
-import { ref} from 'vue'
+import { onMounted, ref } from 'vue'
+import axios from 'axios'
+import type { document } from '../types'
 
+const apiEndpoint = import.meta.env.VITE_APP_BACKEND_BASE_URL + '/api/docs'
+
+
+onMounted(() => {
+  axios
+    .get<document(apiEndpoint)
+    .then(response => {
+      console.log(response.data)
+    })
+    .catch(error => {
+      console.error(error)
+    })
+})
 let doclist = ref([
   { id: 1, title: 'WebTech-VL-5', content: 'WebTech-VL-5 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam' },
   { id: 2, title: 'Controlling TKR', content: 'Controlling TKR Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam' },

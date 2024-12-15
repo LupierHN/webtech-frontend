@@ -10,8 +10,8 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="doc-card">
-    <h2>{{ doc }}</h2>
+  <div class="h-24 rounded bg-gray-50 dark:bg-gray-800">
+    <p >{{ doc }}</p>
     <button :aria-description="'Delete Document ' + doc" v-on:click="$emit('delete')">DELETE</button>
   </div>
 

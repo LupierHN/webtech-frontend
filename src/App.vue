@@ -1,20 +1,27 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
-import { RouterLink } from 'vue-router'
-import Sidebar from '@/components/SidebarAPI.vue'
+import SidebarAPI from '@/components/SidebarAPI.vue'
+import HeaderAPI from '@/components/HeaderAPI.vue'
 import '@/assets/output.css'
+import { onMounted } from 'vue'
+
+let accessToken: string;
+let refreshToken: string;
+
+onMounted(() => {
+  accessToken = localStorage.getItem('accessToken') || ''
+  refreshToken = localStorage.getItem('refreshToken') || ''
+
+  if ((!accessToken || !refreshToken) && window.location.pathname !== '/login') {
+    window.location.href = '/login'
+  }
+})
+
 </script>
 
 <template>
-<!--  <Sidebar title="Sidebar"></Sidebar>-->
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
 
-    <div class="wrapper">
-      <nav>
-        <RouterLink to="/dashboard">Dashboard</RouterLink>
-      </nav>
-    </div>
-  </header>
+  <HeaderAPI title="Header" v-if="accessToken || refreshToken"></HeaderAPI>
+  <SidebarAPI title="Sidebar" v-if="accessToken || refreshToken"></SidebarAPI>
   <RouterView />
 </template>

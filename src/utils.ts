@@ -57,7 +57,7 @@ export async function validateToken(): Promise<boolean> {
     const response = await axios.post<boolean>(apiEndpoint + '/validateToken', token)
     return response.data
   } catch (err) {
-    console.log("validateToken error")
+    console.log("validateToken error"+err)
     nextTick(() => {
       router.push('/login')
     })

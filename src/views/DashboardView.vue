@@ -1,22 +1,46 @@
+// src/views/DashboardView.vue
 <script setup lang="ts">
 import DocCard from '@/components/docCard.vue'
-import { onMounted, ref } from 'vue'
+import { nextTick, onMounted, ref } from 'vue'
 import type { Document } from '@/model/document'
 import axios from 'axios'
-import { logError } from '@/utils'
-
+import { logError, renewToken, validateToken } from '@/utils'
+import HeaderAPI from '@/components/HeaderAPI.vue'
+import SidebarAPI from '@/components/SidebarAPI.vue'
+import router from '@/router'
 
 const apiEndpoint = import.meta.env.VITE_APP_BACKEND_BASE_URL + '/api/documents'
-// const inputText = ref('')
-// const inputTextarea = ref('')
 const documents = ref<Document[]>([])
 
-onMounted(() => {
-  axios
-    .get<Document[]>(apiEndpoint)
-    .then(res => {documents.value = res.data})
-    .catch(err => {console.error(err)})
+onMounted(async () => {
+  try {
+    const res = await axios.get<Document[]>(apiEndpoint + '/all', { headers: { Authorization: 'Bearer ' + localStorage.getItem('accessToken') } })
+    documents.value = res.data
+  } catch (err: any) {
+    if (err.response && err.response.status === 401) {
+      if (await renewToken() && await validateToken()) {
+        console.log('Token renewed')
+        try {
+          const res = await axios.get<Document[]>(apiEndpoint + '/all', { headers: { Authorization: 'Bearer ' + localStorage.getItem('accessToken') } })
+          documents.value = res.data
+        } catch (err: any) {
+          console.log('Token renewed but still unauthorized')
+          await nextTick(() => {
+            router.push('/login')
+          })
+        }
+      } else {
+        await nextTick(() => {
+          router.push('/login')
+        })
+      }
+    } else {
+      console.log('Token is invalid')
+    }
+  }
 })
+
+
 
 async function removeDoc(id: number): Promise<void> {
   try {
@@ -27,6 +51,10 @@ async function removeDoc(id: number): Promise<void> {
     logError(err)
   }
 }
+
+// onMounted(() => {
+//   localStorage.clear()
+// })
 
 // function nextID() {
 //   let id = 0
@@ -52,6 +80,8 @@ async function removeDoc(id: number): Promise<void> {
 </script>
 
 <template>
+  <HeaderAPI title="Header"></HeaderAPI>
+  <SidebarAPI title="Sidebar"></SidebarAPI>
 
   <button data-drawer-target="separator-sidebar" data-drawer-toggle="separator-sidebar" aria-controls="separator-sidebar" type="button" class="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
     <span class="sr-only">Open sidebar</span>

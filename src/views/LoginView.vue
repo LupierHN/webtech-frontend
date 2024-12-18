@@ -1,38 +1,37 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import { ref, watch } from 'vue'
+import { nextTick, ref } from 'vue'
 import axios from 'axios'
-import type { User } from '@/model/user'
-import type { Token } from '@/model/token'
-import { logError } from '@/utils'
+import router from '@/router'
 
 const apiEndpoint = import.meta.env.VITE_APP_BACKEND_BASE_URL + '/api/auth'
 const error = ref<string | undefined>(undefined)
-const tokens = ref<Token[]>([])
 
 const email = ref<string>('')
 const password = ref<string>('')
 
 function loginUser(): void {
   axios
-    .post<Token[]>(apiEndpoint + '/login', { email: email.value, password: password.value })
+    .post(apiEndpoint + '/login', { email: email.value, password: password.value })
     .then((res) => {
       email.value = ''
       password.value = ''
-      tokens.value.push(...res.data)
+      localStorage.setItem('accessToken', res.data[0].token)
+      localStorage.setItem('refreshToken', res.data[1].token)
+      console.log('User logged in')
+      error.value = undefined
+      nextTick(() => {
+        router.push('/')
+      })
     })
     .catch((err) => {
-      logError(err)
-      if (err.response) {
-        error.value = err.response.data.message
-      } else if (err.request) {
-        error.value = 'No response received from the server. Please check your network connection.'
+      if (err.response.status === 404) {
+        error.value = 'Invalid email or password'
       } else {
         error.value = 'An unexpected error occurred: ' + err.message
       }
     })
-  console.log('User logged in')
-  error.value = undefined
+
 }
 </script>
 
@@ -65,6 +64,7 @@ function loginUser(): void {
         </div>
 
         <div>
+          <p v-if="error" class="text-red-500">{{ error }}</p>
           <button type="submit" class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Sign in</button>
         </div>
       </form>

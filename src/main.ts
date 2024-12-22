@@ -5,10 +5,18 @@ import axios from 'axios'
 import App from './App.vue'
 import router from './router'
 import { logout } from '@/userUtils'
+import { Bars3Icon, BellIcon, XMarkIcon, UserCircleIcon, FolderIcon } from '@heroicons/vue/24/outline'
 
 const app = createApp(App)
 
-//AXIOS CONFIG
+// Register Heroicons globally
+app.component('Bars3Icon', Bars3Icon)
+app.component('BellIcon', BellIcon)
+app.component('XMarkIcon', XMarkIcon)
+app.component('UserCircleIcon', UserCircleIcon)
+app.component('FolderIcon', FolderIcon)
+
+// AXIOS CONFIG
 app.config.globalProperties.$axios = axios
 axios.defaults.baseURL = import.meta.env.VITE_APP_BACKEND_BASE_URL
 
@@ -34,10 +42,6 @@ axios.interceptors.response.use(
     return Promise.reject(error)
   }
 )
-
-
-
-
 
 app.use(router)
 

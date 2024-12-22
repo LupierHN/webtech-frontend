@@ -1,35 +1,50 @@
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue'
 import type { Document } from '@/model/document'
+import 'primeicons/primeicons.css'
 
 export default defineComponent({
-    name: 'DocCard',
-    props: { doc: { type: Object as PropType<Document>, required: true } }, // Component input
-    emits: ['delete'], // Component output
+  name: 'DocCard',
+  props: { doc: { type: Object as PropType<Document>, required: true }, shared: { type: Boolean, required: true } }, // Component input
+  emits: ['delete', 'share'], // Component output
 })
 </script>
 
 <template>
-  <div class="h-24 rounded bg-gray-50 dark:bg-gray-800">
-    <p >{{ doc }}</p>
-    <button :aria-description="'Delete Document ' + doc" v-on:click="$emit('delete')">DELETE</button>
+  <div class="rounded bg-white dark:bg-gray-800 text-gray-200 p-5 flex-grow basis-64 max-w-64 flex flex-col justify-between">
+    <h2 class="text-center text-xl font-bold mb-4">{{ doc.name }}</h2>
+    <div class="flex gap-5 items-center py-1">
+      <i class="pi pi-file"></i>
+      <p>{{ doc.docType }}</p>
+    </div>
+    <div class="flex gap-5 items-center py-1">
+      <i class="pi pi-folder"></i>
+      <p>{{ doc.path }}</p>
+    </div>
+    <div class="flex gap-5 items-center py-1">
+      <i class="pi pi-calendar"></i>
+      <p>{{ doc.docDate }}</p>
+    </div>
+    <div v-if="shared " class="flex gap-5 items-center py-1">
+      <i class="pi pi-crown"></i>
+      <p>{{ doc.owner.username }}</p>
+    </div>
+    <div class="flex gap-5 items-center justify-center pt-4 border-t mt-4 border-solid border-gray-500">
+      <RouterLink :to="`/edit?id=${doc.docId}`" class="p-1 border-solid border-2 border-gray-300 w-9 h-9 text-center rounded hover:border-gray-400 hover:text-gray-400">
+        <i class="pi pi-pen-to-square"></i>
+      </RouterLink>
+      <RouterLink :to="`/view?id=${doc.docId}`" class="p-1 border-solid border-2 border-gray-300 w-9 h-9 text-center rounded hover:border-gray-400 hover:text-gray-400">
+        <i class="pi pi-eye"></i>
+      </RouterLink>
+      <button :aria-description="'Delete Document ' + doc.name" v-on:click="$emit('delete')" class="p-1 border-solid border-2 border-gray-300 w-9 h-9 text-center rounded hover:border-gray-400 hover:text-gray-400">
+        <i class="pi pi-trash"></i>
+      </button>
+  <button v-if="!shared" :aria-description="'Share Document ' + doc.name" v-on:click="$emit('share', doc.docId)" class="p-1 border-solid border-2 border-gray-300 w-9 h-9 text-center rounded hover:border-gray-400 hover:text-gray-400">
+    <i class="pi pi-share-alt"></i>
+  </button>
+    </div>
   </div>
-
-<!--  <h1>Dokumentenliste</h1>-->
-<!--  <ul>-->
-<!--    <li v-for="doc in documents" :key="doc.docId">-->
-<!--      <h2>{{ doc.name }}</h2>-->
-<!--      <p>{{ doc.content }}</p>-->
-<!--&lt;!&ndash;      <pre>{{doc.id}}</pre>&ndash;&gt;-->
-<!--      <button @click="removeDoc(doc.docId)">Remove</button>-->
-<!--    </li>-->
-<!--  </ul>-->
-<!--  <h1>Neues Dokument</h1>-->
-<!--  <input v-model="inputText" type="text" placeholder="Titel" />-->
-<!--  <textarea v-model="inputTextarea" placeholder="Inhalt"></textarea>-->
-<!--  <button @click="addDoc(inputText, inputTextarea)">Add</button>-->
 </template>
 
 <style scoped>
-
 </style>

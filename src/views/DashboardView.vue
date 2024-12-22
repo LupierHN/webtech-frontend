@@ -69,11 +69,12 @@ onMounted(async () => {
     </svg>
   </button>
 
-  <div class="p-4 sm:ml-64">
-    <div class="p-4 border-2 border-gray-200 border-dashed rounded-lg dark:border-gray-700">
+  <div class="p-4 sm:ml-64 overflow-y-scroll">
+    <div class="p-4">
       <p v-if="documents.length === 0">No documents found</p>
-      <div class="grid grid-cols-5 gap-4 mb-4 justify-center" v-else>
-        <DocCard v-for="doc in documents" :key="doc.docId" :doc="doc" @delete="removeDoc(doc.docId)" />
+<!--      <div class="grid grid-cols-5 gap-4 mb-4 justify-center" v-else>-->
+      <div class="flex flex-wrap justify-start gap-16 sm:content-center" v-else>
+        <DocCard v-for="doc in documents" :key="doc.docId" :shared="false" :doc="doc" @delete="removeDoc(doc.docId)" @share="shareDoc(doc.docId)"/>
       </div>
     </div>
   </div>

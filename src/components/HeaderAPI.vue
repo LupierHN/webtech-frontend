@@ -49,11 +49,6 @@
 
       <!-- Profil-Icon & Name -->
       <div class="flex items-center gap-2">
-        <img
-          src="https://via.placeholder.com/40"
-          alt="Profilbild"
-          class="w-8 h-8 rounded-full"
-        />
         <span class="text-gray-700 font-medium">Tom Cook</span>
       </div>
     </div>

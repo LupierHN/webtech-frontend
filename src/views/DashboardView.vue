@@ -1,58 +1,37 @@
 // src/views/DashboardView.vue
 <script setup lang="ts">
 import DocCard from '@/components/docCard.vue'
-import { nextTick, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import type { Document } from '@/model/document'
 import axios from 'axios'
-import { logError, renewToken, validateToken } from '@/utils'
 import HeaderAPI from '@/components/HeaderAPI.vue'
 import SidebarAPI from '@/components/SidebarAPI.vue'
-import router from '@/router'
 
-const apiEndpoint = import.meta.env.VITE_APP_BACKEND_BASE_URL + '/api/documents'
 const documents = ref<Document[]>([])
 
 onMounted(async () => {
   try {
-    const res = await axios.get<Document[]>(apiEndpoint + '/all', { headers: { Authorization: 'Bearer ' + localStorage.getItem('accessToken') } })
+    const res = await axios.get<Document[]>('/documents/all')
     documents.value = res.data
-  } catch (err: any) {
-    if (err.response && err.response.status === 401) {
-      if (await renewToken() && await validateToken()) {
-        console.log('Token renewed')
-        try {
-          const res = await axios.get<Document[]>(apiEndpoint + '/all', { headers: { Authorization: 'Bearer ' + localStorage.getItem('accessToken') } })
-          documents.value = res.data
-        } catch (err: any) {
-          console.log('Token renewed but still unauthorized')
-          await nextTick(() => {
-            router.push('/login')
-          })
-        }
-      } else {
-        await nextTick(() => {
-          router.push('/login')
-        })
-      }
-    } else {
-      console.log('Token is invalid')
-    }
+  } catch (err) {
+    console.log(err)
   }
 })
 
 
 
-async function removeDoc(id: number): Promise<void> {
-  try {
-    const response = await axios.delete(`${apiEndpoint}/${id}`)
-    console.log(response)
-    documents.value = documents.value.filter(doc => doc.docId !== id)
-  } catch (err) {
-    logError(err)
-  }
-}
+// async function removeDoc(id: number): Promise<void> {
+//   try {
+//     const response = await axios.delete(`${apiEndpoint}/${id}`)
+//     console.log(response)
+//     documents.value = documents.value.filter(doc => doc.docId !== id)
+//   } catch (err) {
+//     logError(err)
+//   }
+// }
 
 // onMounted(() => {
+//   localStorage.clear()
 //   localStorage.clear()
 // })
 

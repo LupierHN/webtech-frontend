@@ -2,10 +2,9 @@
 import { RouterLink } from 'vue-router'
 import { nextTick, ref, watch } from 'vue'
 import axios from 'axios'
-import { logError } from '@/utils'
+import { logError } from '@/tokenUtils'
 import router from '@/router'
 
-const apiEndpoint = import.meta.env.VITE_APP_BACKEND_BASE_URL + '/api/auth'
 const error = ref<string | undefined>(undefined)
 const usernameTaken = ref<boolean>(false)
 const emailTaken = ref<boolean>(false)
@@ -30,7 +29,7 @@ watch(username, (newVal) => {
     usernameTaken.value = false
     return
   }
-  axios.get(apiEndpoint + '/find/' + newVal)
+  axios.get('/auth/find/' + newVal)
     .then((response) => {
       usernameTaken.value = !!response.data;
     })
@@ -45,7 +44,7 @@ watch(email, (newVal) => {
     emailTaken.value = false
     return
   }
-  axios.get(apiEndpoint + '/finde/' + newVal)
+  axios.get('/auth/finde/' + newVal)
     .then((response) => {
       emailTaken.value = !!response.data;
     })
@@ -58,7 +57,7 @@ watch(email, (newVal) => {
 
 function registerUser(): void {
   axios
-    .post(apiEndpoint + '/register', { email: email.value, password: password.value, username: username.value, firstName: firstName.value, lastName: lastName.value })
+    .post('/auth/register', { email: email.value, password: password.value, username: username.value, firstName: firstName.value, lastName: lastName.value })
     .then((res) => {
       email.value = ''
       password.value = ''

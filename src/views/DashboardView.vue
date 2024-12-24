@@ -71,8 +71,7 @@ onMounted(async () => {
 
   <div class="p-4 sm:ml-64 overflow-y-scroll">
     <div class="p-4">
-      <p v-if="documents.length === 0">No documents found</p>
-<!--      <div class="grid grid-cols-5 gap-4 mb-4 justify-center" v-else>-->
+      <h1 class="dark:text-white" v-if="documents.length === 0">No documents found</h1>
       <div class="flex flex-wrap justify-start gap-16 sm:content-center" v-else>
         <DocCard v-for="doc in documents" :key="doc.docId" :shared="false" :doc="doc" @delete="removeDoc(doc.docId)" @share="shareDoc(doc.docId)"/>
       </div>

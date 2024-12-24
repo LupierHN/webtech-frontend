@@ -33,6 +33,7 @@ axios.defaults.baseURL = import.meta.env.VITE_APP_BACKEND_BASE_URL
 
 axios.interceptors.request.use((config) => {
   console.log('Request made to ' + config.url)
+  console.log('Request Body:', config.data)
   const token = localStorage.getItem('accessToken')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`

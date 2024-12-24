@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
-import { Bars3Icon, BellIcon, XMarkIcon , UserCircleIcon } from '@heroicons/vue/24/outline'
+import { Bars3Icon, BellIcon, XMarkIcon , UserCircleIcon , PencilIcon , ChevronDownIcon , LinkIcon , CheckIcon } from '@heroicons/vue/24/outline'
 import type { User } from '@/model/user'
-import { logout} from '@/userUtils'
+import { logout } from '@/userUtils'
+import { ref } from 'vue'
+import { RouterLink } from 'vue-router'
 
 const userJSON = sessionStorage.getItem('user')
 const user: User = userJSON ? JSON.parse(userJSON) : { username: '', email: '' }
@@ -20,16 +22,59 @@ const userNavigation = [
   { name: 'Sign out', href: '#' },
 ]
 
+const createDocLink = ref('/edit')
 </script>
 
 <template>
   <Disclosure as="nav" class="bg-gray-800 sm:ml-64" v-slot="{ open }">
     <div class="mx-auto px-4">
       <div class="flex items-center justify-between p-4">
-        <div class="invisible"></div>
+
+        <!-- Edit options -->
+        <div class="mt-5 flex lg:ml-4 lg:mt-0">
+          <span class="hidden sm:block">
+            <RouterLink :to="createDocLink" class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+              <PencilIcon class="-ml-0.5 mr-1.5 size-5 text-gray-400" aria-hidden="true" />
+              Create
+            </RouterLink>
+          </span>
+
+          <span class="ml-3 hidden sm:block">
+            <RouterLink to="/view" class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+              <LinkIcon class="-ml-0.5 mr-1.5 size-5 text-gray-400" aria-hidden="true" />
+              View
+            </RouterLink>
+          </span>
+
+          <span class="sm:ml-3">
+            <RouterLink to="/publish" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+              <CheckIcon class="-ml-0.5 mr-1.5 size-5" aria-hidden="true" />
+              Publish
+            </RouterLink>
+          </span>
+
+          <!-- Dropdown -->
+          <Menu as="div" class="relative ml-3 sm:hidden">
+            <MenuButton class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:ring-gray-400">
+              More
+              <ChevronDownIcon class="-mr-1 ml-1.5 size-5 text-gray-400" aria-hidden="true" />
+            </MenuButton>
+
+            <transition enter-active-class="transition ease-out duration-200" enter-from-class="transform opacity-0 scale-95" enter-to-class="transform opacity-100 scale-100" leave-active-class="transition ease-in duration-75" leave-from-class="transform opacity-100 scale-100" leave-to-class="transform opacity-0 scale-95">
+              <MenuItems class="absolute right-0 z-10 -mr-1 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-none">
+                <MenuItem v-slot="{ active }">
+                  <RouterLink :to="createDocLink" :class="[active ? 'bg-gray-100 outline-none' : '', 'block px-4 py-2 text-sm text-gray-700']">Create</RouterLink>
+                </MenuItem>
+                <MenuItem v-slot="{ active }">
+                  <RouterLink to="/view" :class="[active ? 'bg-gray-100 outline-none' : '', 'block px-4 py-2 text-sm text-gray-700']">View</RouterLink>
+                </MenuItem>
+              </MenuItems>
+            </transition>
+          </Menu>
+        </div>
+
         <div class="flex items-center w-full max-w-2xl">
           <div class="hidden md:block w-full">
-
             <form class="max-w-md mx-auto">
               <label for="default-search" class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
               <div class="relative">
@@ -42,8 +87,6 @@ const userNavigation = [
                 <button type="submit" class="text-white absolute end-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Search</button>
               </div>
             </form>
-
-              <!--              <a v-for="item in navigation" :key="item.name" :href="item.href" :class="[item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white', 'rounded-md px-3 py-2 text-sm font-medium']" :aria-current="item.current ? 'page' : undefined">{{ item.name }}</a>-->
           </div>
         </div>
         <div class="hidden md:block">
@@ -116,61 +159,7 @@ const userNavigation = [
       </div>
     </DisclosurePanel>
   </Disclosure>
-
-
-<!--  <div-->
-<!--    class="flex items-center justify-between p-4 border-b bg-white shadow-sm ml-64"-->
-<!--  >-->
-<!--    &lt;!&ndash; Suche &ndash;&gt;-->
-<!--    <div class="flex items-center m-auto w-1/2">-->
-<!--      <div class="relative w-full">-->
-<!--        <input type="text" placeholder="Search" class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300 w-full"/>-->
-<!--        <svg-->
-<!--          class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"-->
-<!--          xmlns="http://www.w3.org/2000/svg"-->
-<!--          fill="none"-->
-<!--          viewBox="0 0 24 24"-->
-<!--          stroke="currentColor"-->
-<!--        >-->
-<!--          <path-->
-<!--            stroke-linecap="round"-->
-<!--            stroke-linejoin="round"-->
-<!--            stroke-width="2"-->
-<!--            d="M21 21l-4.35-4.35m-2.9-2.9a7 7 0 1 0-9.9-9.9 7 7 0 0 0 9.9 9.9z"-->
-<!--          />-->
-<!--        </svg>-->
-<!--      </div>-->
-<!--    </div>-->
-
-<!--    &lt;!&ndash; Icons & Profil &ndash;&gt;-->
-<!--    <div class="flex items-center gap-4">-->
-<!--      &lt;!&ndash; Glocken Icon &ndash;&gt;-->
-<!--      <button class="relative">-->
-<!--        <svg-->
-<!--          class="w-6 h-6 text-gray-600 hover:text-blue-600"-->
-<!--          xmlns="http://www.w3.org/2000/svg"-->
-<!--          fill="none"-->
-<!--          viewBox="0 0 24 24"-->
-<!--          stroke="currentColor"-->
-<!--        >-->
-<!--          <path-->
-<!--            stroke-linecap="round"-->
-<!--            stroke-linejoin="round"-->
-<!--            stroke-width="2"-->
-<!--            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14V10a6 6 0 10-12 0v4c0 .586-.214 1.144-.595 1.595L4 17h5m6 0a3 3 0 11-6 0"-->
-<!--          />-->
-<!--        </svg>-->
-<!--      </button>-->
-
-<!--      &lt;!&ndash; Profil-Icon & Name &ndash;&gt;-->
-<!--      <div class="flex items-center gap-2">-->
-<!--        <span class="text-gray-700 font-medium">Tom Cook</span>-->
-<!--      </div>-->
-<!--    </div>-->
-<!--  </div>-->
-
 </template>
 
 <style scoped>
-
 </style>

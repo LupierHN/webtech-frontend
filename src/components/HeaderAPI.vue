@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
-import { Bars3Icon, BellIcon, XMarkIcon , UserCircleIcon , PencilIcon , ChevronDownIcon , LinkIcon , CheckIcon } from '@heroicons/vue/24/outline'
+import { Bars3Icon, BellIcon, XMarkIcon , UserCircleIcon , PencilIcon} from '@heroicons/vue/24/outline'
 import type { User } from '@/model/user'
 import { logout } from '@/userUtils'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
+import { escapeHtml , unescapeHtml} from '@/utils'
+import axios from 'axios'
+import type { Document } from '@/model/document'
 
 const userJSON = sessionStorage.getItem('user')
 const user: User = userJSON ? JSON.parse(userJSON) : { username: '', email: '' }
@@ -21,8 +24,24 @@ const userNavigation = [
   { name: 'Settings', href: '#' },
   { name: 'Sign out', href: '#' },
 ]
-
+const searchTerm = ref<string>('')
 const createDocLink = ref('/edit')
+const searchResults = ref<Document[]>([])
+
+watch(searchTerm, (newVal) => {
+  const search = escapeHtml(newVal)
+  if (search.length > 3) {
+    axios.get<Document[]>('/documents/search', { params: { search } })
+      .then(res => {
+        searchResults.value = res.data
+      })
+      .catch(err => {
+        console.log(err)
+      })
+  } else {
+    searchResults.value = []
+  }
+})
 </script>
 
 <template>
@@ -33,47 +52,14 @@ const createDocLink = ref('/edit')
         <!-- Edit options -->
         <div class="mt-5 flex lg:ml-4 lg:mt-0">
           <span class="hidden sm:block">
-            <RouterLink :to="createDocLink" class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
-              <PencilIcon class="-ml-0.5 mr-1.5 size-5 text-gray-400" aria-hidden="true" />
+            <RouterLink :to="createDocLink" class="inline-flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-semibold rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+              <PencilIcon class="-ml-0.5 mr-1.5 size-5 text-white" aria-hidden="true" />
               Create
             </RouterLink>
           </span>
-
-          <span class="ml-3 hidden sm:block">
-            <RouterLink to="/view" class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
-              <LinkIcon class="-ml-0.5 mr-1.5 size-5 text-gray-400" aria-hidden="true" />
-              View
-            </RouterLink>
-          </span>
-
-          <span class="sm:ml-3">
-            <RouterLink to="/publish" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-              <CheckIcon class="-ml-0.5 mr-1.5 size-5" aria-hidden="true" />
-              Publish
-            </RouterLink>
-          </span>
-
-          <!-- Dropdown -->
-          <Menu as="div" class="relative ml-3 sm:hidden">
-            <MenuButton class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:ring-gray-400">
-              More
-              <ChevronDownIcon class="-mr-1 ml-1.5 size-5 text-gray-400" aria-hidden="true" />
-            </MenuButton>
-
-            <transition enter-active-class="transition ease-out duration-200" enter-from-class="transform opacity-0 scale-95" enter-to-class="transform opacity-100 scale-100" leave-active-class="transition ease-in duration-75" leave-from-class="transform opacity-100 scale-100" leave-to-class="transform opacity-0 scale-95">
-              <MenuItems class="absolute right-0 z-10 -mr-1 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-none">
-                <MenuItem v-slot="{ active }">
-                  <RouterLink :to="createDocLink" :class="[active ? 'bg-gray-100 outline-none' : '', 'block px-4 py-2 text-sm text-gray-700']">Create</RouterLink>
-                </MenuItem>
-                <MenuItem v-slot="{ active }">
-                  <RouterLink to="/view" :class="[active ? 'bg-gray-100 outline-none' : '', 'block px-4 py-2 text-sm text-gray-700']">View</RouterLink>
-                </MenuItem>
-              </MenuItems>
-            </transition>
-          </Menu>
         </div>
 
-        <div class="flex items-center w-full max-w-2xl">
+        <div class="flex items-center w-full max-w-2xl relative" style="margin-left: -5.5rem">
           <div class="hidden md:block w-full">
             <form class="max-w-md mx-auto">
               <label for="default-search" class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
@@ -83,11 +69,15 @@ const createDocLink = ref('/edit')
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
                   </svg>
                 </div>
-                <input type="search" id="default-search" class="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search..." required />
-                <button type="submit" class="text-white absolute end-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Search</button>
+                <input type="search" id="default-search" class="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search..." v-model="searchTerm" required />
               </div>
             </form>
           </div>
+            <ul v-if="searchResults.length > 0" class="absolute z-10 w-full mt-2  rounded-lg ring-1 ring-black/5 top-full my-4 mx-28 bg-transparent shadow-none max-w-md">
+              <li v-for="doc in searchResults" :key="doc.docId" class="block p-4 text-sm text-gray-700 dark:text-white my-2 mx-4 bg-gray-700 rounded">
+                <RouterLink :to="`/edit?id=${doc.docId}`">{{ unescapeHtml(doc.name) }}</RouterLink>
+              </li>
+            </ul>
         </div>
         <div class="hidden md:block">
           <div class="ml-4 flex items-center md:ml-6">

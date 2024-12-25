@@ -2,9 +2,11 @@
 import { defineComponent, type PropType } from 'vue'
 import type { Document } from '@/model/document'
 import 'primeicons/primeicons.css'
+import { unescapeHtml } from '../utils'
 
 export default defineComponent({
   name: 'DocCard',
+  methods: { unescapeHtml },
   props: { doc: { type: Object as PropType<Document>, required: true }, shared: { type: Boolean, required: true } }, // Component input
   emits: ['delete', 'share'], // Component output
 })
@@ -12,7 +14,7 @@ export default defineComponent({
 
 <template>
   <div class="rounded bg-white dark:bg-gray-800 text-gray-200 p-5 flex-grow basis-64 max-w-64 flex flex-col justify-between">
-    <h2 class="text-center text-xl font-bold mb-4">{{ doc.name }}</h2>
+    <h2 class="text-center text-xl font-bold mb-4">{{ unescapeHtml(doc.name) }}</h2>
     <div class="flex gap-5 items-center py-1">
       <i class="pi pi-file"></i>
       <p>{{ doc.docType }}</p>

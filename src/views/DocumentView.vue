@@ -7,9 +7,13 @@ import axios from 'axios'
 import HeaderAPI from '@/components/HeaderAPI.vue'
 import SidebarAPI from '@/components/SidebarAPI.vue'
 import DocEditorAPI from '@/components/DocEditorAPI.vue'
+import DocViewAPI from '@/components/DocViewAPI.vue'
+import { useRoute } from 'vue-router'
 
 const document = ref<Document>()
 const owner = ref<User>()
+const route = useRoute()
+const edit = route.name === 'edit'
 
 onMounted(async () => {
   const id = new URLSearchParams(window.location.search).get('id')
@@ -39,6 +43,8 @@ onMounted(async () => {
     }
   }
 })
+
+
 </script>
 
 <template>
@@ -55,8 +61,8 @@ onMounted(async () => {
   <div class="p-4 sm:ml-64 overflow-y-scroll">
     <h1 class="text-2xl font-bold dark:text-white" v-if="!document">Document not found</h1>
     <div class="p-4 pl-16" v-else>
-      <h1 class="text-2xl font-bold dark:text-white mb-4" >{{ document.name }}</h1>
-      <DocEditorAPI :key="document.docId" :doc="document" title="Editor"></DocEditorAPI>
+      <DocEditorAPI v-if="edit" :key="`editor-${document.docId}`" :doc="document" title="Editor"></DocEditorAPI>
+      <DocViewAPI v-else :key="`view-${document.docId}`" :doc="document" title="View"></DocViewAPI>
     </div>
   </div>
 

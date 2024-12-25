@@ -67,7 +67,7 @@ async function saveContent(): Promise<void> {
 
 watch(model, () => {
   saveContent()
-})
+} )
 watch(docTitle, () => {
   document.value.name = escapeHtml(docTitle.value)
   if (document.value.docId != -1) {

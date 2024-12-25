@@ -3,6 +3,7 @@ import DashboardView from '@/views/DashboardView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
 import DocumentView from '@/views/DocumentView.vue'
+import TermsAndCondition from '@/views/TermsAndCondition.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -31,6 +32,11 @@ const router = createRouter({
       path: '/view',
       name: 'view',
       component: DocumentView
+    },
+    {
+      path: '/terms',
+      name: 'terms',
+      component: TermsAndCondition
     }
   ]
 })

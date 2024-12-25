@@ -6,9 +6,10 @@ import { setTokenRenewalTimer , resetTokenRenewalTimer} from '@/tokenUtils'
 import type { User } from '@/model/user'
 
 export async function login(credentials: { email: string; password: string }): Promise<{ error?: string }> {
+  //new User Object
+  const user: User = {email: credentials.email, password: credentials.password, uId: 0, username: '', firstName: '', lastName: ''}
   try {
-
-    const response = await axios.post<Token[]>('/auth/login', credentials)
+    const response = await axios.post<Token[]>('/auth/login', user)
 
     const tokens: Token[] = response.data
     localStorage.setItem('refreshToken', tokens[1].token)

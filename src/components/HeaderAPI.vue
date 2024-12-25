@@ -28,6 +28,18 @@ const searchTerm = ref<string>('')
 const createDocLink = ref('/edit')
 const searchResults = ref<Document[]>([])
 
+const clearSearch = () => {
+  //wait for the click event to finish before clearing the search
+  setTimeout(() => {
+    searchResults.value = []
+    searchTerm.value = ''
+  }, 100)
+}
+
+// watch(window.location, () => {
+//   clearSearch()
+// })
+
 watch(searchTerm, (newVal) => {
   const search = escapeHtml(newVal)
   if (search.length > 3) {
@@ -69,13 +81,13 @@ watch(searchTerm, (newVal) => {
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
                   </svg>
                 </div>
-                <input type="search" id="default-search" class="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search..." v-model="searchTerm" required />
+                <input type="search" id="default-search" class="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search..." v-model="searchTerm" required @blur="clearSearch" />
               </div>
             </form>
           </div>
             <ul v-if="searchResults.length > 0" class="absolute z-10 w-full mt-2  rounded-lg ring-1 ring-black/5 top-full my-4 mx-28 bg-transparent shadow-none max-w-md">
               <li v-for="doc in searchResults" :key="doc.docId" class="block p-4 text-sm text-gray-700 dark:text-white my-2 mx-4 bg-gray-700 rounded">
-                <RouterLink :to="`/edit?id=${doc.docId}`">{{ unescapeHtml(doc.name) }}</RouterLink>
+                <RouterLink :to="`/edit?id=${doc.docId}`" >{{ unescapeHtml(doc.name) }}</RouterLink>
               </li>
             </ul>
         </div>

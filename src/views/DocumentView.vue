@@ -1,6 +1,6 @@
 // src/views/DashboardView.vue
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onUpdated, ref } from 'vue'
 import type { Document } from '@/model/document'
 import type { User } from '@/model/user'
 import axios from 'axios'
@@ -16,6 +16,13 @@ const route = useRoute()
 const edit = route.name === 'edit'
 
 onMounted(async () => {
+  await loadDoc()
+})
+// onUpdated(async () => {
+//   await loadDoc()
+// })
+
+async function loadDoc(): Promise<void> {
   const id = new URLSearchParams(window.location.search).get('id')
   if (id) {
     try {
@@ -42,7 +49,7 @@ onMounted(async () => {
       document.value = undefined
     }
   }
-})
+}
 
 
 </script>

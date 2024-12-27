@@ -39,12 +39,7 @@ const config =  reactive({
   },
   quickInsertButtons: ['table', 'ul', 'ol', 'hr'],
   autofocus: true,
-  heightMin: 400,
-  events: {
-    initialized: function () {
-      console.log('initialized')
-    }
-  }
+  heightMin: 400
 })
 
 async function saveContent(): Promise<void> {

@@ -24,12 +24,12 @@ const router = createRouter({
       component: RegisterView
     },
     {
-      path: '/edit',
+      path: '/edit/:id(\\d+)?',
       name: 'edit',
       component: DocumentView
     },
     {
-      path: '/view',
+      path: '/view/:id(\\d+)',
       name: 'view',
       component: DocumentView
     },
@@ -37,6 +37,11 @@ const router = createRouter({
       path: '/terms',
       name: 'terms',
       component: TermsAndCondition
+    },
+    {
+      path: '/shared/:id',
+      name: 'shared',
+      component: DashboardView
     }
   ]
 })

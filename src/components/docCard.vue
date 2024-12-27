@@ -36,10 +36,10 @@ export default defineComponent({
       <p>{{ doc.owner.username }}</p>
     </div>
     <div class="flex gap-5 items-center justify-center pt-4 border-t mt-4 border-solid border-gray-500">
-      <RouterLink :to="`/edit?id=${doc.docId}`" class="p-1 border-solid border-2 border-gray-300 w-9 h-9 text-center rounded hover:border-gray-400 hover:text-gray-400">
+      <RouterLink :to="`/edit/${doc.docId}`" class="p-1 border-solid border-2 border-gray-300 w-9 h-9 text-center rounded hover:border-gray-400 hover:text-gray-400">
         <i class="pi pi-pen-to-square"></i>
       </RouterLink>
-      <RouterLink :to="`/view?id=${doc.docId}`" class="p-1 border-solid border-2 border-gray-300 w-9 h-9 text-center rounded hover:border-gray-400 hover:text-gray-400">
+      <RouterLink :to="`/view/${doc.docId}`" class="p-1 border-solid border-2 border-gray-300 w-9 h-9 text-center rounded hover:border-gray-400 hover:text-gray-400">
         <i class="pi pi-eye"></i>
       </RouterLink>
       <button v-if="!shared"  class="p-1 border-solid border-2 border-gray-300 w-9 h-9 text-center rounded hover:border-gray-400 hover:text-gray-400" type="button" v-on:click="$emit('delete', doc.docId)">

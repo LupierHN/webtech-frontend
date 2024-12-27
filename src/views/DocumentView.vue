@@ -1,6 +1,6 @@
 // src/views/DashboardView.vue
 <script setup lang="ts">
-import { onMounted, onUpdated, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import type { Document } from '@/model/document'
 import type { User } from '@/model/user'
 import axios from 'axios'
@@ -8,7 +8,7 @@ import HeaderAPI from '@/components/HeaderAPI.vue'
 import SidebarAPI from '@/components/SidebarAPI.vue'
 import DocEditorAPI from '@/components/DocEditorAPI.vue'
 import DocViewAPI from '@/components/DocViewAPI.vue'
-import { useRoute } from 'vue-router'
+import { onBeforeRouteUpdate, useRoute } from 'vue-router'
 
 const document = ref<Document>()
 const owner = ref<User>()
@@ -16,15 +16,22 @@ const route = useRoute()
 const edit = route.name === 'edit'
 
 onMounted(async () => {
-  await loadDoc()
+    if (route.params.id) {
+    await loadDoc(+route.params.id)
+  } else {
+    await loadDoc()
+  }
 })
-// onUpdated(async () => {
-//   await loadDoc()
-// })
+onBeforeRouteUpdate(async (to) => {
+  if (!to.params.id) {
+    return {name: 'dashboard'}
+  }else {
+    await loadDoc(+to.params.id)
+  }
+})
 
-async function loadDoc(): Promise<void> {
-  const id = new URLSearchParams(window.location.search).get('id')
-  if (id) {
+async function loadDoc(id?: number): Promise<void> {
+  if (id !== undefined) {
     try {
       const res = await axios.get<Document>(`/documents/${id}`)
       const content = await axios.get<string>(`/documents/content/${id}`)
@@ -33,7 +40,7 @@ async function loadDoc(): Promise<void> {
     } catch (err) {
       console.log(err)
     }
-  } else if(id === null) {
+  } else {
     owner.value = JSON.parse(sessionStorage.getItem('user') || '{}')
     if (owner.value) {
       document.value = {

@@ -2,7 +2,6 @@ import { nextTick} from 'vue'
 import router from '@/router'
 import axios from 'axios'
 import type { Token } from '@/model/token'
-import { setTokenRenewalTimer , resetTokenRenewalTimer} from '@/tokenUtils'
 import type { User } from '@/model/user'
 
 export async function login(credentials: { email: string; password: string }): Promise<{ error?: string }> {
@@ -14,19 +13,18 @@ export async function login(credentials: { email: string; password: string }): P
     const tokens: Token[] = response.data
     localStorage.setItem('refreshToken', tokens[1].token)
     localStorage.setItem('accessToken', tokens[0].token)
-    setTokenRenewalTimer()
     getUser()
     nextTick(() => {
       router.push('/')
     })
     return {}
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (err) {
     return { error: 'Login failed' }
   }
 }
 
 export function logout(): void {
-  resetTokenRenewalTimer()
   console.log('Logging out')
   localStorage.clear()
   sessionStorage.clear()

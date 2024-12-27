@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { onBeforeRouteUpdate, RouterView } from 'vue-router'
+import { RouterView, useRouter, useRoute} from 'vue-router'
 import '@/assets/output.css'
 import { onMounted, onUpdated } from 'vue'
 import { checkTokens } from '@/tokenUtils'
 import { initFlowbite } from 'flowbite'
-import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const route = useRoute()
 
 onMounted(() => {
   if (router.currentRoute.value.path === '/') {
@@ -22,19 +22,10 @@ onUpdated(() => {
   checkTokens()
 })
 
-onBeforeRouteUpdate((to) => {
-  // if (to.meta.requiresAuth && !sessionStorage.getItem('accessToken')) {
-  //   return { name: 'login' }
-  // }
-  if (to.path === '/') {
-    return { name: 'dashboard' }
-  }
-})
-
 </script>
 
 <template>
   <div class="w-dvw h-dvh bg-gray-50 dark:bg-gray-900">
-    <RouterView />
+    <RouterView :key="route.fullPath" />
   </div>
 </template>

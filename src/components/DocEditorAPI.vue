@@ -3,6 +3,7 @@ import { onMounted, reactive, ref, watch } from 'vue'
 import type { Document } from '@/model/document'
 import axios from 'axios'
 import { escapeHtml, unescapeHtml } from '@/utils'
+import { initFlowbite } from 'flowbite'
 
 const props = defineProps<{
   doc: Document
@@ -10,6 +11,7 @@ const props = defineProps<{
 }>()
 const document = ref<Document>(props.doc)
 onMounted(() => {
+  initFlowbite()
   if (document.value.docId != -1) {
     axios.get<string>(`/documents/content/${document.value.docId}`)
       .then(res => {
@@ -79,7 +81,10 @@ watch(docTitle, () => {
 </script>
 
 <template>
-  <input type="text" id="default-input" class="text-black dark:text-white font-bold text-2xl mb-4 border-none bg-transparent" :placeholder="docTitle" v-model="docTitle">
+  <div class="relative z-0 max-w-80 mb-3 ml-3">
+    <input type="text" id="default-input" class="block py-2.5 px-0 w-full text-lg font-semibold text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" :placeholder="docTitle" v-model="docTitle">
+    <label for="default-input" class="absolute text-base text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto">Document name</label>
+  </div>
   <froala id="edit" :tag="'textarea'" :config="config" v-model:value="model"></froala>
 </template>
 

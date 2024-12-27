@@ -1,7 +1,7 @@
 // src/views/DashboardView.vue
 <script setup lang="ts">
 import DocCard from '@/components/docCard.vue'
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, onUpdated, ref, watch } from 'vue'
 import type { Document } from '@/model/document'
 import axios from 'axios'
 import HeaderAPI from '@/components/HeaderAPI.vue'
@@ -9,6 +9,7 @@ import SidebarAPI from '@/components/SidebarAPI.vue'
 import type { User } from '@/model/user'
 import { onBeforeRouteUpdate, useRoute } from 'vue-router'
 import { type DismissInterface, type DismissOptions, initFlowbite, type InstanceOptions, Modal, Dismiss } from 'flowbite'
+import router from '@/router'
 
 const route = useRoute()
 const documents = ref<Document[]>([])
@@ -27,7 +28,7 @@ let dangerDismiss: DismissInterface
 
 async function loadData(): Promise<void> {
   try {
-    if (route.path === '/') {
+    if (route.path === '/dashboard') {
       const res = await axios.get<Document[]>('/documents/all')
       documents.value = res.data
       owner.value = JSON.parse(sessionStorage.getItem('user') || '{}')
@@ -71,11 +72,6 @@ onMounted(async () => {
   successDismiss = new Dismiss($toastSuccess, $exitSuccess, options, instanceOptionsS)
   dangerDismiss = new Dismiss($toastDanger, $exitDanger, options, instanceOptionsD)
 
-})
-
-onBeforeRouteUpdate(async () => {
-  console.log('before route update')
-  await loadData()
 })
 
 watch(shareError, (newVal) => {

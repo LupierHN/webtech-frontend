@@ -7,13 +7,16 @@ import axios from 'axios'
 import HeaderAPI from '@/components/HeaderAPI.vue'
 import SidebarAPI from '@/components/SidebarAPI.vue'
 import type { User } from '@/model/user'
+import { onBeforeRouteUpdate, useRoute } from 'vue-router'
 import { type DismissInterface, type DismissOptions, initFlowbite, type InstanceOptions, Modal, Dismiss } from 'flowbite'
 
+const route = useRoute()
 const documents = ref<Document[]>([])
 const shareError = ref('')
 const owner = ref<User>()
 const docId = ref<number>(0)
-const username = ref('')
+const username = ref<string>('')
+const shared = ref<string>('')
 let $toastSuccess: HTMLElement | null = null
 let $toastDanger: HTMLElement | null = null
 let $exitSuccess: HTMLElement | null = null
@@ -21,14 +24,32 @@ let $exitDanger: HTMLElement | null = null
 let successDismiss: DismissInterface
 let dangerDismiss: DismissInterface
 
-onMounted(async () => {
+
+async function loadData(): Promise<void> {
   try {
-    const res = await axios.get<Document[]>('/documents/all')
-    documents.value = res.data
-  } catch (err: any) {
+    if (route.path === '/') {
+      const res = await axios.get<Document[]>('/documents/all')
+      documents.value = res.data
+      owner.value = JSON.parse(sessionStorage.getItem('user') || '{}')
+    } else {
+      if (route.params.id) {
+        shared.value = route.params.id as string
+        if (shared.value === 'by-me') {
+          const res = await axios.get<Document[]>('/documents/shared/by')
+          documents.value = res.data
+        } else {
+          const res = await axios.get<Document[]>(`/documents/shared/with`)
+          documents.value = res.data
+        }
+      }
+    }
+  } catch (err) {
     console.log(err)
   }
-  owner.value = JSON.parse(sessionStorage.getItem('user') || '{}')
+}
+
+onMounted(async () => {
+  await loadData()
   initFlowbite()
   $toastSuccess = document.getElementById('toast-success')
   $toastDanger = document.getElementById('toast-danger')
@@ -50,6 +71,11 @@ onMounted(async () => {
   successDismiss = new Dismiss($toastSuccess, $exitSuccess, options, instanceOptionsS)
   dangerDismiss = new Dismiss($toastDanger, $exitDanger, options, instanceOptionsD)
 
+})
+
+onBeforeRouteUpdate(async () => {
+  console.log('before route update')
+  await loadData()
 })
 
 watch(shareError, (newVal) => {
@@ -136,7 +162,7 @@ async function deleteDoc(id: number): Promise<void> {
     const response = await axios.delete(`/documents/${id}`)
     console.log(response)
     documents.value = documents.value.filter(doc => doc.docId !== id)
-  } catch (err: any) {
+  } catch (err) {
     console.log(err)
   }
 }
@@ -146,6 +172,7 @@ async function deleteDoc(id: number): Promise<void> {
   <HeaderAPI title="Header"></HeaderAPI>
   <SidebarAPI title="Sidebar"></SidebarAPI>
 
+<!--  ShareSuccess Notification-->
   <div id="toast-success" class="hidden fixed flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800 top-14 right-5" role="alert">
     <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg dark:bg-green-800 dark:text-green-200">
       <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -161,6 +188,7 @@ async function deleteDoc(id: number): Promise<void> {
       </svg>
     </button>
   </div>
+<!--  ShareError Notification-->
   <div id="toast-danger" class="hidden fixed flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800 top-14 right-5" role="alert">
     <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-red-500 bg-red-100 rounded-lg dark:bg-red-800 dark:text-red-200">
       <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -230,7 +258,7 @@ async function deleteDoc(id: number): Promise<void> {
     </div>
   </div>
 
-
+<!--  TODO: ResponsiveDesign-->
   <button data-drawer-target="separator-sidebar" data-drawer-toggle="separator-sidebar" aria-controls="separator-sidebar" type="button" class="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
     <span class="sr-only">Open sidebar</span>
     <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -242,7 +270,7 @@ async function deleteDoc(id: number): Promise<void> {
     <div class="p-4">
       <h1 class="dark:text-white" v-if="documents.length === 0">No documents found</h1>
       <div class="flex flex-wrap justify-start gap-16 sm:content-center" v-else>
-        <DocCard v-for="doc in documents" :key="doc.docId" :shared="false" :doc="doc" @delete="showDeleteModal(doc.docId)" @share="showShareModal(doc.docId)"></DocCard>
+        <DocCard v-for="doc in documents" :key="doc.docId" :shared="shared" :doc="doc" @delete="showDeleteModal(doc.docId)" @share="showShareModal(doc.docId)"></DocCard>
       </div>
     </div>
   </div>

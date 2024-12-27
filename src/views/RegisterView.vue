@@ -65,7 +65,7 @@ function registerUser(): void {
       localStorage.setItem('refreshToken', res.data[1].token)
       console.log('User logged in')
       nextTick(() => {
-        router.push('/')
+        router.push('/dashboard')
       })
       error.value = undefined
     })

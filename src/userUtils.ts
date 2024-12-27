@@ -15,7 +15,7 @@ export async function login(credentials: { email: string; password: string }): P
     localStorage.setItem('accessToken', tokens[0].token)
     getUser()
     nextTick(() => {
-      router.push('/')
+      router.push('/dashboard')
     })
     return {}
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

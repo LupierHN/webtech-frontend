@@ -9,7 +9,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/',
+      path: '/dashboard',
       name: 'dashboard',
       component: DashboardView
     },
@@ -42,6 +42,11 @@ const router = createRouter({
       path: '/shared/:id',
       name: 'shared',
       component: DashboardView
+    },
+    {
+      name: 'notFound',
+      path: '/:pathMatch(.*)*',
+      redirect: { name: 'dashboard'}
     }
   ]
 })

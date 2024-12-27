@@ -15,7 +15,7 @@ async function loginUser(): Promise<void> {
       error.value = 'Benutzername oder Passwort falsch'
     } else {
       await nextTick(() => {
-        router.push('/')
+        router.push('/dashboard')
       })
     }
   } catch (err) {

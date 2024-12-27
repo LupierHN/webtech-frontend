@@ -9,7 +9,7 @@ export default defineComponent({
   methods: { unescapeHtml },
   props: {
     doc: { type: Object as PropType<Document>, required: true },
-    shared: { type: Boolean, required: true }
+    shared: { type: String, required: false }
   }, // Component input
   emits: ['delete', 'share']
 })
@@ -31,7 +31,7 @@ export default defineComponent({
       <i class="pi pi-calendar"></i>
       <p>{{ doc.docDate }}</p>
     </div>
-    <div v-if="shared " class="flex gap-5 items-center py-1">
+    <div v-if="shared || shared == 'with-me'" class="flex gap-5 items-center py-1">
       <i class="pi pi-crown"></i>
       <p>{{ doc.owner.username }}</p>
     </div>
@@ -42,10 +42,10 @@ export default defineComponent({
       <RouterLink :to="`/view/${doc.docId}`" class="p-1 border-solid border-2 border-gray-300 w-9 h-9 text-center rounded hover:border-gray-400 hover:text-gray-400">
         <i class="pi pi-eye"></i>
       </RouterLink>
-      <button v-if="!shared"  class="p-1 border-solid border-2 border-gray-300 w-9 h-9 text-center rounded hover:border-gray-400 hover:text-gray-400" type="button" v-on:click="$emit('delete', doc.docId)">
+      <button v-if="!shared || shared == 'by-me'"  class="p-1 border-solid border-2 border-gray-300 w-9 h-9 text-center rounded hover:border-gray-400 hover:text-gray-400" type="button" v-on:click="$emit('delete', doc.docId)">
         <i class="pi pi-trash"></i>
       </button>
-  <button v-if="!shared" class="p-1 border-solid border-2 border-gray-300 w-9 h-9 text-center rounded hover:border-gray-400 hover:text-gray-400" type="button" v-on:click="$emit('share', doc.docId)">
+  <button v-if="!shared || shared == 'by-me'" class="p-1 border-solid border-2 border-gray-300 w-9 h-9 text-center rounded hover:border-gray-400 hover:text-gray-400" type="button" v-on:click="$emit('share', doc.docId)">
     <i class="pi pi-share-alt"></i>
   </button>
     </div>

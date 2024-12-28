@@ -1,61 +1,260 @@
+// src/views/DashboardView.vue
 <script setup lang="ts">
 import DocCard from '@/components/docCard.vue'
-import { onMounted, ref } from 'vue'
+import { onMounted, onUpdated, ref, watch } from 'vue'
 import type { Document } from '@/model/document'
 import axios from 'axios'
+import HeaderAPI from '@/components/HeaderAPI.vue'
+import SidebarAPI from '@/components/SidebarAPI.vue'
+import type { User } from '@/model/user'
+import { onBeforeRouteUpdate, useRoute } from 'vue-router'
+import { type DismissInterface, type DismissOptions, initFlowbite, type InstanceOptions, Modal, Dismiss } from 'flowbite'
+import router from '@/router'
 
-
-const apiEndpoint = import.meta.env.VITE_APP_BACKEND_BASE_URL + '/api/documents'
-// const inputText = ref('')
-// const inputTextarea = ref('')
+const route = useRoute()
 const documents = ref<Document[]>([])
+const shareError = ref('')
+const owner = ref<User>()
+const docId = ref<number>(0)
+const username = ref<string>('')
+const shared = ref<string>('')
+let $toastSuccess: HTMLElement | null = null
+let $toastDanger: HTMLElement | null = null
+let $exitSuccess: HTMLElement | null = null
+let $exitDanger: HTMLElement | null = null
+let successDismiss: DismissInterface
+let dangerDismiss: DismissInterface
 
-onMounted(() => {
-  axios
-    .get<Document[]>(apiEndpoint)
-    .then(res => {documents.value = res.data})
-    .catch(err => {console.error(err)})
-})
 
-async function removeDoc(id: number): Promise<void> {
+async function loadData(): Promise<void> {
   try {
-    const response = await axios.delete(`${apiEndpoint}/${id}`)
-    console.log(response)
-    documents.value = documents.value.filter(doc => doc.docId !== id)
+    if (route.path === '/dashboard') {
+      const res = await axios.get<Document[]>('/documents/all')
+      documents.value = res.data
+      owner.value = JSON.parse(sessionStorage.getItem('user') || '{}')
+    } else {
+      if (route.params.id) {
+        shared.value = route.params.id as string
+        if (shared.value === 'by-me') {
+          const res = await axios.get<Document[]>('/documents/shared/by')
+          documents.value = res.data
+        } else {
+          const res = await axios.get<Document[]>(`/documents/shared/with`)
+          documents.value = res.data
+        }
+      }
+    }
   } catch (err) {
-    logError(err)
+    console.log(err)
   }
 }
 
-// function nextID() {
-//   let id = 0
-//   for (let i = 0; i < documents.value.length; i++) {
-//     if (documents.value[i].docId > id) {
-//       id = documents.value[i].docId
-//     }
-//   }
-//   return id + 1
-// }
+onMounted(async () => {
+  await loadData()
+  initFlowbite()
+  $toastSuccess = document.getElementById('toast-success')
+  $toastDanger = document.getElementById('toast-danger')
+  $exitSuccess = document.getElementById('exit-success')
+  $exitDanger = document.getElementById('exit-danger')
+  const options: DismissOptions = {
+    transition: 'transition-opacity',
+    duration: 1000,
+    timing: 'ease-out'
+  }
+  const instanceOptionsS: InstanceOptions = {
+    id: 'toast-success',
+    override: true
+  }
+  const instanceOptionsD: InstanceOptions = {
+    id: 'toast-danger',
+    override: true
+  }
+  successDismiss = new Dismiss($toastSuccess, $exitSuccess, options, instanceOptionsS)
+  dangerDismiss = new Dismiss($toastDanger, $exitDanger, options, instanceOptionsD)
 
-// function addDoc(title: string, content: string): void {
-//   axios
-//     .post<Document>(apiEndpoint, { docId: nextID(), title: title, content: content })
-//     .then(res => {
-//       inputText.value = ''
-//       inputTextarea.value = ''
-//       documents.value.push(res.data)
-//     })
-//     .catch(err => logError(err))
-// }
+})
 
-function logError(err: unknown): void {
-  alert('Something went wrong ... check your browser console for more information')
-  console.error(err)
+watch(shareError, (newVal) => {
+  if (newVal === 'Shared successfully' && $toastSuccess && $exitSuccess) {
+    document.getElementById('toast-success')?.classList.remove('transition-opacity')
+    document.getElementById('toast-success')?.classList.remove( 'duration-1000')
+    document.getElementById('toast-success')?.classList.remove('ease-out')
+    document.getElementById('toast-success')?.classList.remove('opacity-0')
+    document.getElementById('toast-success')?.classList.remove('hidden')
+  } else if (newVal !== '' && $toastDanger && $exitDanger) {
+    document.getElementById('toast-danger')?.classList.remove('transition-opacity')
+    document.getElementById('toast-danger')?.classList.remove( 'duration-1000')
+    document.getElementById('toast-danger')?.classList.remove('ease-out')
+    document.getElementById('toast-danger')?.classList.remove('opacity-0')
+    document.getElementById('toast-danger')?.classList.remove('hidden')
+  } else {
+    if ($toastSuccess && $exitSuccess) {
+      successDismiss.hide()
+    }
+    if ($toastDanger && $exitDanger) {
+      dangerDismiss.hide()
+    }
+  }
+  setTimeout(() => {
+    shareError.value = ''
+  }, 5000)
+})
+
+function showDeleteModal(id: number): void {
+  docId.value = id
+  const $deleteModal = document.querySelector('#popup-modal') as HTMLElement;
+  const $exitDelete = document.querySelector('#exitDelete') as HTMLElement;
+  const $closeDelete = document.querySelector('#closeDelete') as HTMLElement;
+  const $deleteButton = document.querySelector('#deleteButton') as HTMLElement;
+  if ($deleteModal && $exitDelete && $closeDelete && $deleteButton) {
+    const modal = new Modal($deleteModal);
+    $exitDelete.addEventListener('click', () => modal.hide())
+    $closeDelete.addEventListener('click', () => modal.hide())
+    $deleteButton.addEventListener('click', () => {
+      deleteDoc(id)
+      modal.hide()
+    })
+    modal.show();
+  }
+}
+
+function showShareModal(id: number): void {
+  docId.value = id
+  const $shareModal = document.querySelector('#share-modal') as HTMLElement;
+  const $closeShare = document.querySelector('#closeShare') as HTMLElement;
+  const $shareButton = document.querySelector('#shareButton') as HTMLElement;
+  if ($shareModal && $closeShare && $shareButton) {
+    const modal = new Modal($shareModal);
+    $closeShare.addEventListener('click', () => modal.hide())
+    $shareButton.addEventListener('click', () => {
+      shareDoc(id, username.value)
+      modal.hide()
+    })
+    modal.show();
+  }
+}
+
+async function shareDoc(id: number, username: string): Promise<void> {
+  try {
+    const response = await axios.post(`/documents/share/${id}/${username}`)
+    console.log(response)
+    shareError.value = 'Shared successfully'
+  } catch (err: any) {
+    if (err.response.status === 404) {
+      shareError.value = 'User not found'
+    } else if (err.response.status === 400) {
+      shareError.value = 'Document already shared with this user'
+    } else {
+      console.log(err)
+    }
+  }
+}
+
+async function deleteDoc(id: number): Promise<void> {
+  if (docId.value === 0) {
+    return
+  }
+  try {
+    const response = await axios.delete(`/documents/${id}`)
+    console.log(response)
+    documents.value = documents.value.filter(doc => doc.docId !== id)
+  } catch (err) {
+    console.log(err)
+  }
 }
 </script>
 
 <template>
+  <HeaderAPI title="Header"></HeaderAPI>
+  <SidebarAPI title="Sidebar"></SidebarAPI>
 
+<!--  ShareSuccess Notification-->
+  <div id="toast-success" class="hidden fixed flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800 top-14 right-5" role="alert">
+    <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg dark:bg-green-800 dark:text-green-200">
+      <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
+      </svg>
+      <span class="sr-only">Check icon</span>
+    </div>
+    <div class="ms-3 text-sm font-normal" v-html="shareError" ></div>
+    <button id="exit-success" type="button" class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-success" aria-label="Close">
+      <span class="sr-only">Close</span>
+      <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+      </svg>
+    </button>
+  </div>
+<!--  ShareError Notification-->
+  <div id="toast-danger" class="hidden fixed flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800 top-14 right-5" role="alert">
+    <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-red-500 bg-red-100 rounded-lg dark:bg-red-800 dark:text-red-200">
+      <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"/>
+      </svg>
+      <span class="sr-only">Error icon</span>
+    </div>
+    <div class="ms-3 text-sm font-normal" v-html="shareError" ></div>
+    <button id="exit-danger" type="button" class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-danger" aria-label="Close">
+      <span class="sr-only">Close</span>
+      <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+      </svg>
+    </button>
+  </div>
+
+  <!--  Modal for deleting a document-->
+  <div id="popup-modal" data-modal-target="popup-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+      <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+        <button type="button" id="closeDelete" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="popup-modal">
+          <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+          </svg>
+          <span class="sr-only">Close modal</span>
+        </button>
+        <div class="p-4 md:p-5 text-center">
+          <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+          </svg>
+          <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Are you sure you want to delete this document?</h3>
+          <button id="deleteButton" data-modal-hide="popup-modal" :aria-description="'Delete Document ' + docId" type="button" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
+            Yes, I'm sure
+          </button>
+          <button data-modal-hide="popup-modal" id="exitDelete" type="button" class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">No, cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- share modal -->
+  <div id="share-modal" data-modal-target="share-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+      <!-- Modal content -->
+      <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+        <!-- Modal header -->
+        <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+            Share a document with an other user
+          </h3>
+          <button id="closeShare" type="button" class="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="share-modal">
+            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+            </svg>
+            <span class="sr-only">Close modal</span>
+          </button>
+        </div>
+        <!-- Modal body -->
+        <div class="p-4 md:p-5 space-y-4">
+          <div>
+            <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Username to share with</label>
+            <input type="text" name="username" id="username" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="max2000" v-model="username" required />
+          </div>
+          <button type="button" id="shareButton" data-modal-hide="share-modal" :aria-description="'Share Document ' + docId" class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Share document</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!--  TODO: ResponsiveDesign-->
   <button data-drawer-target="separator-sidebar" data-drawer-toggle="separator-sidebar" aria-controls="separator-sidebar" type="button" class="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
     <span class="sr-only">Open sidebar</span>
     <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -63,128 +262,15 @@ function logError(err: unknown): void {
     </svg>
   </button>
 
-  <aside id="separator-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
-    <div class="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
-      <ul class="space-y-2 font-medium">
-        <li>
-          <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-            <svg class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 21">
-              <path d="M16.975 11H10V4.025a1 1 0 0 0-1.066-.998 8.5 8.5 0 1 0 9.039 9.039.999.999 0 0 0-1-1.066h.002Z"/>
-              <path d="M12.5 0c-.157 0-.311.01-.565.027A1 1 0 0 0 11 1.02V10h8.975a1 1 0 0 0 1-.935c.013-.188.028-.374.028-.565A8.51 8.51 0 0 0 12.5 0Z"/>
-            </svg>
-            <span class="ms-3">Dashboard</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-            <svg class="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 18">
-              <path d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Zm-10 10H1.857A1.857 1.857 0 0 0 0 11.857v4.286C0 17.169.831 18 1.857 18h4.286A1.857 1.857 0 0 0 8 16.143v-4.286A1.857 1.857 0 0 0 6.143 10Zm10 0h-4.286A1.857 1.857 0 0 0 10 11.857v4.286c0 1.026.831 1.857 1.857 1.857h4.286A1.857 1.857 0 0 0 18 16.143v-4.286A1.857 1.857 0 0 0 16.143 10Z"/>
-            </svg>
-            <span class="flex-1 ms-3 whitespace-nowrap">Kanban</span>
-            <span class="inline-flex items-center justify-center px-2 ms-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300">Pro</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-            <svg class="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-              <path d="m17.418 3.623-.018-.008a6.713 6.713 0 0 0-2.4-.569V2h1a1 1 0 1 0 0-2h-2a1 1 0 0 0-1 1v2H9.89A6.977 6.977 0 0 1 12 8v5h-2V8A5 5 0 1 0 0 8v6a1 1 0 0 0 1 1h8v4a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-4h6a1 1 0 0 0 1-1V8a5 5 0 0 0-2.582-4.377ZM6 12H4a1 1 0 0 1 0-2h2a1 1 0 0 1 0 2Z"/>
-            </svg>
-            <span class="flex-1 ms-3 whitespace-nowrap">Inbox</span>
-            <span class="inline-flex items-center justify-center w-3 h-3 p-3 ms-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300">3</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-            <svg class="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 18">
-              <path d="M14 2a3.963 3.963 0 0 0-1.4.267 6.439 6.439 0 0 1-1.331 6.638A4 4 0 1 0 14 2Zm1 9h-1.264A6.957 6.957 0 0 1 15 15v2a2.97 2.97 0 0 1-.184 1H19a1 1 0 0 0 1-1v-1a5.006 5.006 0 0 0-5-5ZM6.5 9a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9ZM8 10H5a5.006 5.006 0 0 0-5 5v2a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-2a5.006 5.006 0 0 0-5-5Z"/>
-            </svg>
-            <span class="flex-1 ms-3 whitespace-nowrap">Users</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-            <svg class="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 20">
-              <path d="M17 5.923A1 1 0 0 0 16 5h-3V4a4 4 0 1 0-8 0v1H2a1 1 0 0 0-1 .923L.086 17.846A2 2 0 0 0 2.08 20h13.84a2 2 0 0 0 1.994-2.153L17 5.923ZM7 9a1 1 0 0 1-2 0V7h2v2Zm0-5a2 2 0 1 1 4 0v1H7V4Zm6 5a1 1 0 1 1-2 0V7h2v2Z"/>
-            </svg>
-            <span class="flex-1 ms-3 whitespace-nowrap">Products</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-            <svg class="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 16">
-              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 8h11m0 0L8 4m4 4-4 4m4-11h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-3"/>
-            </svg>
-            <span class="flex-1 ms-3 whitespace-nowrap">Sign In</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-            <svg class="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M5 5V.13a2.96 2.96 0 0 0-1.293.749L.879 3.707A2.96 2.96 0 0 0 .13 5H5Z"/>
-              <path d="M6.737 11.061a2.961 2.961 0 0 1 .81-1.515l6.117-6.116A4.839 4.839 0 0 1 16 2.141V2a1.97 1.97 0 0 0-1.933-2H7v5a2 2 0 0 1-2 2H0v11a1.969 1.969 0 0 0 1.933 2h12.134A1.97 1.97 0 0 0 16 18v-3.093l-1.546 1.546c-.413.413-.94.695-1.513.81l-3.4.679a2.947 2.947 0 0 1-1.85-.227 2.96 2.96 0 0 1-1.635-3.257l.681-3.397Z"/>
-              <path d="M8.961 16a.93.93 0 0 0 .189-.019l3.4-.679a.961.961 0 0 0 .49-.263l6.118-6.117a2.884 2.884 0 0 0-4.079-4.078l-6.117 6.117a.96.96 0 0 0-.263.491l-.679 3.4A.961.961 0 0 0 8.961 16Zm7.477-9.8a.958.958 0 0 1 .68-.281.961.961 0 0 1 .682 1.644l-.315.315-1.36-1.36.313-.318Zm-5.911 5.911 4.236-4.236 1.359 1.359-4.236 4.237-1.7.339.341-1.699Z"/>
-            </svg>
-            <span class="flex-1 ms-3 whitespace-nowrap">Sign Up</span>
-          </a>
-        </li>
-      </ul>
-      <ul class="pt-4 mt-4 space-y-2 font-medium border-t border-gray-200 dark:border-gray-700">
-        <li>
-          <a href="#" class="flex items-center p-2 text-gray-900 transition duration-75 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
-            <svg class="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 17 20">
-              <path d="M7.958 19.393a7.7 7.7 0 0 1-6.715-3.439c-2.868-4.832 0-9.376.944-10.654l.091-.122a3.286 3.286 0 0 0 .765-3.288A1 1 0 0 1 4.6.8c.133.1.313.212.525.347A10.451 10.451 0 0 1 10.6 9.3c.5-1.06.772-2.213.8-3.385a1 1 0 0 1 1.592-.758c1.636 1.205 4.638 6.081 2.019 10.441a8.177 8.177 0 0 1-7.053 3.795Z"/>
-            </svg>
-            <span class="ms-3">Upgrade to Pro</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="flex items-center p-2 text-gray-900 transition duration-75 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
-            <svg class="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 20">
-              <path d="M16 14V2a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2v15a3 3 0 0 0 3 3h12a1 1 0 0 0 0-2h-1v-2a2 2 0 0 0 2-2ZM4 2h2v12H4V2Zm8 16H3a1 1 0 0 1 0-2h9v2Z"/>
-            </svg>
-            <span class="ms-3">Documentation</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="flex items-center p-2 text-gray-900 transition duration-75 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
-            <svg class="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 18">
-              <path d="M18 0H6a2 2 0 0 0-2 2h14v12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2Z"/>
-              <path d="M14 4H2a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2ZM2 16v-6h12v6H2Z"/>
-            </svg>
-            <span class="ms-3">Components</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="flex items-center p-2 text-gray-900 transition duration-75 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
-            <svg class="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 21 21">
-              <path d="m5.4 2.736 3.429 3.429A5.046 5.046 0 0 1 10.134 6c.356.01.71.06 1.056.147l3.41-3.412c.136-.133.287-.248.45-.344A9.889 9.889 0 0 0 10.269 1c-1.87-.041-3.713.44-5.322 1.392a2.3 2.3 0 0 1 .454.344Zm11.45 1.54-.126-.127a.5.5 0 0 0-.706 0l-2.932 2.932c.029.023.049.054.078.077.236.194.454.41.65.645.034.038.078.067.11.107l2.927-2.927a.5.5 0 0 0 0-.707Zm-2.931 9.81c-.024.03-.057.052-.081.082a4.963 4.963 0 0 1-.633.639c-.041.036-.072.083-.115.117l2.927 2.927a.5.5 0 0 0 .707 0l.127-.127a.5.5 0 0 0 0-.707l-2.932-2.931Zm-1.442-4.763a3.036 3.036 0 0 0-1.383-1.1l-.012-.007a2.955 2.955 0 0 0-1-.213H10a2.964 2.964 0 0 0-2.122.893c-.285.29-.509.634-.657 1.013l-.01.016a2.96 2.96 0 0 0-.21 1 2.99 2.99 0 0 0 .489 1.716c.009.014.022.026.032.04a3.04 3.04 0 0 0 1.384 1.1l.012.007c.318.129.657.2 1 .213.392.015.784-.05 1.15-.192.012-.005.02-.013.033-.018a3.011 3.011 0 0 0 1.676-1.7v-.007a2.89 2.89 0 0 0 0-2.207 2.868 2.868 0 0 0-.27-.515c-.007-.012-.02-.025-.03-.039Zm6.137-3.373a2.53 2.53 0 0 1-.35.447L14.84 9.823c.112.428.166.869.16 1.311-.01.356-.06.709-.147 1.054l3.413 3.412c.132.134.249.283.347.444A9.88 9.88 0 0 0 20 11.269a9.912 9.912 0 0 0-1.386-5.319ZM14.6 19.264l-3.421-3.421c-.385.1-.781.152-1.18.157h-.134c-.356-.01-.71-.06-1.056-.147l-3.41 3.412a2.503 2.503 0 0 1-.443.347A9.884 9.884 0 0 0 9.732 21H10a9.9 9.9 0 0 0 5.044-1.388 2.519 2.519 0 0 1-.444-.348ZM1.735 15.6l3.426-3.426a4.608 4.608 0 0 1-.013-2.367L1.735 6.4a2.507 2.507 0 0 1-.35-.447 9.889 9.889 0 0 0 0 10.1c.1-.164.217-.316.35-.453Zm5.101-.758a4.957 4.957 0 0 1-.651-.645c-.033-.038-.077-.067-.11-.107L3.15 17.017a.5.5 0 0 0 0 .707l.127.127a.5.5 0 0 0 .706 0l2.932-2.933c-.03-.018-.05-.053-.078-.076ZM6.08 7.914c.03-.037.07-.063.1-.1.183-.22.384-.423.6-.609.047-.04.082-.092.129-.13L3.983 4.149a.5.5 0 0 0-.707 0l-.127.127a.5.5 0 0 0 0 .707L6.08 7.914Z"/>
-            </svg>
-            <span class="ms-3">Help</span>
-          </a>
-        </li>
-      </ul>
-    </div>
-  </aside>
-
-  <div class="p-4 sm:ml-64">
-    <div class="p-4 border-2 border-gray-200 border-dashed rounded-lg dark:border-gray-700">
-      <p v-if="documents.length === 0">No documents found</p>
-      <div class="grid grid-cols-5 gap-4 mb-4 justify-center" v-else>
-        <DocCard v-for="doc in documents" :key="doc.docId" :doc="doc" @delete="removeDoc(doc.docId)" />
+  <div class="p-4 sm:ml-64 overflow-y-scroll">
+    <div class="p-4">
+      <h1 class="dark:text-white" v-if="documents.length === 0">No documents found</h1>
+      <div class="flex flex-wrap justify-start gap-16 sm:content-center" v-else>
+        <DocCard v-for="doc in documents" :key="doc.docId" :shared="shared" :doc="doc" @delete="showDeleteModal(doc.docId)" @share="showShareModal(doc.docId)"></DocCard>
       </div>
     </div>
   </div>
-
-
-  <!--  <main>-->
-
-<!--    <p v-if="documents.length === 0">No documents found</p>-->
-<!--    <div id="document-container" v-else>-->
-<!--      <DocCard v-for="doc in documents" :key="doc.docId" :doc="doc" @delete="removeDoc(doc.docId)" />-->
-<!--    </div>-->
-<!--  </main>-->
 </template>
 
 <style scoped>
-
 </style>

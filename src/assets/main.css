@@ -1,1 +1,122 @@
 @import './base.css';
+
+.fr-view a:link { color: blue; text-decoration: underline; cursor: auto; }
+.fr-view a:visited { color: darkblue; text-decoration: underline; cursor: auto; }
+.fr-view a:link:active { color: lightblue; }
+.fr-view a:visited:active { color: cadetblue; }
+.fr-view address { display: block;font-style: italic; }
+.fr-view area { display: none; }
+.fr-view article { display: block; }
+.fr-view aside { display: block; }
+.fr-view b { font-weight: bold; }
+.fr-view bdo { unicode-bidi: bidi-override; }
+.fr-view blockquote { display: block;
+    margin: 1em 40px;
+}
+.fr-view body { display: block; margin: 8px; }
+.fr-view body:focus { outline: none; }
+.fr-view caption { display: table-caption; text-align: center; }
+.fr-view cite { font-style: italic; }
+.fr-view code { font-family: monospace; }
+.fr-view col { display: table-column; }
+.fr-view colgroup { display: table-column-group }
+.fr-view datalist { display: none; }
+.fr-view dd { display: block; margin-left: 40px; }
+.fr-view del { text-decoration: line-through; }
+.fr-view details { display: block; }
+.fr-view dfn { font-style: italic; }
+.fr-view div { display: block; }
+.fr-view dl { display: block;
+    margin: 1em 0;
+}
+.fr-view dt { display: block; }
+.fr-view em { font-style: italic; }
+.fr-view embed:focus { outline: none; }
+.fr-view fieldset { display: block; margin-left: 2px; margin-right: 2px;
+    padding: 0.35em 0.75em 0.625em;
+    border: 2px groove black; }
+.fr-view figcaption { display: block; }
+.fr-view figure { display: block;
+    margin: 1em 40px;
+}
+.fr-view footer { display: block; }
+.fr-view form { display: block; margin-top: 0; }
+.fr-view h1 { display: block; font-size: 2em;
+    margin: 0.67em 0;
+    font-weight: bold; }
+.fr-view h2 { display: block; font-size: 1.5em;
+    margin: 0.83em 0;
+    font-weight: bold; }
+.fr-view h3 { display: block; font-size: 1.17em;
+    margin: 1em 0;
+    font-weight: bold; }
+.fr-view h4 { display: block;
+    margin: 1.33em 0;
+    font-weight: bold; }
+.fr-view h5 { display: block; font-size: .83em;
+    margin: 1.67em 0;
+    font-weight: bold; }
+.fr-view h6 { display: block; font-size: .67em;
+    margin: 2.33em 0;
+    font-weight: bold; }
+.fr-view head { display: none; }
+.fr-view header { display: block; }
+.fr-view hr { display: block;
+    margin: 0.5em auto;
+    border-style: inset; border-width: 1px; }
+.fr-view html { display: block; }
+.fr-view html:focus { outline: none; }
+.fr-view i { font-style: italic; }
+.fr-view iframe:focus { outline: none; }
+.fr-view iframe[seamless] { display: block; }
+.fr-view img { display: inline-block; }
+.fr-view ins { text-decoration: underline; }
+.fr-view kbd { font-family: monospace; }
+.fr-view label { cursor: default; }
+.fr-view legend { display: block; padding-left: 2px; padding-right: 2px; border: none; }
+.fr-view li { display: list-item; }
+.fr-view link { display: none; }
+.fr-view map { display: inline; }
+.fr-view mark { background-color: yellow; color: black; }
+.fr-view menu { display: block; list-style-type: disc;
+    margin: 1em 0;
+    padding-left: 40px; }
+.fr-view nav { display: block; }
+.fr-view object:focus { outline: none; }
+.fr-view ol { display: block; list-style-type: decimal;
+    margin: 1em 0;
+    padding-left: 40px; }
+.fr-view output { display: inline; }
+.fr-view p { display: block;
+    margin: 1em 0;
+}
+.fr-view param { display: none; }
+.fr-view pre { display: block; font-family: monospace; white-space: pre; margin: 1em 0; }
+.fr-view q { display: inline; }
+.fr-view q::before { content: open-quote; }
+.fr-view q::after { content: close-quote; }
+.fr-view rt { line-height: normal; }
+.fr-view s { text-decoration: line-through; }
+.fr-view samp { font-family: monospace; }
+.fr-view script { display: none; }
+.fr-view section { display: block; }
+.fr-view small { font-size: smaller; }
+.fr-view strike { text-decoration: line-through; }
+.fr-view strong { font-weight: bold; }
+.fr-view style { display: none; }
+.fr-view sub { vertical-align: sub; font-size: smaller; }
+.fr-view summary { display: block; }
+.fr-view sup { vertical-align: super; font-size: smaller; }
+.fr-view table { display: table; border-collapse: separate; border-spacing: 2px; border-color: gray; }
+.fr-view tbody { display: table-row-group; vertical-align: middle; border-color: inherit; }
+.fr-view td { display: table-cell; vertical-align: inherit; }
+.fr-view tfoot { display: table-footer-group; vertical-align: middle; border-color: inherit; }
+.fr-view th { display: table-cell; vertical-align: inherit; font-weight: bold; text-align: center; }
+.fr-view thead { display: table-header-group; vertical-align: middle; border-color: inherit; }
+.fr-view title { display: none; }
+.fr-view tr { display: table-row; vertical-align: inherit; border-color: inherit; }
+.fr-view u { text-decoration: underline; }
+.fr-view ul { display: block; list-style-type: disc;
+    margin: 1em 0 1em;
+    padding-left: 40px; }
+.fr-view var { font-style: italic; }

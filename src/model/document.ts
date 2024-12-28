@@ -1,8 +1,11 @@
+import type { User } from '@/model/user'
+
 export interface Document {
   readonly docId: number
   name: string
   path: string
-  content: string
   docType: string
+  content: string
   docDate: string
+  owner: User
 }

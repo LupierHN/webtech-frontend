@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
+import { Disclosure, DisclosureButton } from '@headlessui/vue'
 import { Bars3Icon, BellIcon, XMarkIcon , UserCircleIcon , PencilIcon} from '@heroicons/vue/24/outline'
 import type { User } from '@/model/user'
 import { logout } from '@/userUtils'
@@ -17,7 +17,7 @@ const searchTerm = ref<string>('')
 const createDocLink = ref('/edit/')
 const searchResults = ref<Document[]>([])
 
-const clearSearch = () => {
+const clearSearch = async () => {
   //wait for the click event to finish before clearing the search
   setTimeout(() => {
     searchResults.value = []
@@ -76,7 +76,10 @@ watch(searchTerm, (newVal) => {
           </div>
             <ul v-if="searchResults.length > 0" class="absolute z-10 w-full mt-2  rounded-lg ring-1 ring-black/5 top-full my-4 mx-28 bg-transparent shadow-none max-w-md">
               <li v-for="doc in searchResults" :key="doc.docId" class="block p-4 text-sm text-gray-700 dark:text-white my-2 mx-4 bg-gray-700 rounded">
-                <RouterLink :to="`/edit/${doc.docId}`" >{{ unescapeHtml(doc.name) }}</RouterLink>
+                <RouterLink :to="`/edit/${doc.docId}`" @click="clearSearch" class="flex justify-between" >
+                  <p v-html="unescapeHtml(doc.name)" ></p>
+                  <p v-html="unescapeHtml(doc.owner.username)" ></p>
+                </RouterLink>
               </li>
             </ul>
         </div>

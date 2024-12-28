@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import { nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import axios from 'axios'
 import { logError } from '@/tokenUtils'
 import router from '@/router'
@@ -16,6 +16,7 @@ const lastName = ref<string>('')
 const password = ref<string>('')
 const confirmPassword = ref<string>('')
 
+const isDisabled = computed(() => !!error.value || usernameTaken.value || emailTaken.value)
 watch(confirmPassword, (newVal) => {
   if (newVal !== password.value) {
     error.value = 'Passwords do not match'
@@ -132,7 +133,7 @@ function registerUser(): void {
                 <label for="terms" class="font-light text-gray-500 dark:text-gray-300">I accept the <RouterLink to="/terms" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Terms and Conditions</RouterLink></label>
               </div>
             </div>
-            <button type="submit" :disabled="error || usernameTaken || emailTaken" class="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 disabled:opacity-50">Create an account</button>
+            <button type="submit" :disabled="isDisabled" class="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 disabled:opacity-50">Create an account</button>
             <p class="text-sm font-light text-gray-500 dark:text-gray-400">
               Already have an account?
               <RouterLink to="/login" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Login here</RouterLink>

@@ -18,6 +18,7 @@ const docId = ref<number>(0)
 const username = ref<string>('')
 const shared = ref<string>('')
 const loadingData = ref<boolean>(false)
+const sharedWith = ref<User[]>([])
 let $toastSuccess: HTMLElement | null = null
 let $toastDanger: HTMLElement | null = null
 let $exitSuccess: HTMLElement | null = null
@@ -111,36 +112,70 @@ function showDeleteModal(id: number): void {
   const $deleteButton = document.querySelector('#deleteButton') as HTMLElement;
   if ($deleteModal && $exitDelete && $closeDelete && $deleteButton) {
     const modal = new Modal($deleteModal);
-    $exitDelete.addEventListener('click', () => modal.hide())
-    $closeDelete.addEventListener('click', () => modal.hide())
-    $deleteButton.addEventListener('click', () => {
-      deleteDoc(id)
-      modal.hide()
-    })
+
+    // Remove existing event listeners
+    $exitDelete.replaceWith($exitDelete.cloneNode(true));
+    $closeDelete.replaceWith($closeDelete.cloneNode(true));
+    $deleteButton.replaceWith($deleteButton.cloneNode(true));
+
+    // Reassign the elements after cloning
+    const newExitDelete = document.querySelector('#exitDelete') as HTMLElement;
+    const newCloseDelete = document.querySelector('#closeDelete') as HTMLElement;
+    const newDeleteButton = document.querySelector('#deleteButton') as HTMLElement;
+
+    newExitDelete.addEventListener('click', () => modal.hide());
+    newCloseDelete.addEventListener('click', () => modal.hide());
+    newDeleteButton.addEventListener('click', () => {
+      deleteDoc(id);
+      modal.hide();
+    });
+
     modal.show();
   }
 }
 
 function showShareModal(id: number): void {
   docId.value = id
+  try {
+    axios.get<User[]>(`/documents/shared/${id}`)
+      .then(res => {
+        sharedWith.value = res.data
+      })
+  } catch (err) {
+    console.log(err)
+  }
   const $shareModal = document.querySelector('#share-modal') as HTMLElement;
   const $closeShare = document.querySelector('#closeShare') as HTMLElement;
   const $shareButton = document.querySelector('#shareButton') as HTMLElement;
   if ($shareModal && $closeShare && $shareButton) {
     const modal = new Modal($shareModal);
-    $closeShare.addEventListener('click', () => modal.hide())
-    $shareButton.addEventListener('click', () => {
-      shareDoc(id, username.value)
-      modal.hide()
-    })
+
+    // Remove existing event listeners
+    $closeShare.replaceWith($closeShare.cloneNode(true));
+    $shareButton.replaceWith($shareButton.cloneNode(true));
+
+    // Reassign the elements after cloning
+    const newCloseShare = document.querySelector('#closeShare') as HTMLElement;
+    const newShareButton = document.querySelector('#shareButton') as HTMLElement;
+
+    newCloseShare.addEventListener('click', () => modal.hide());
+    newShareButton.addEventListener('click', () => {
+      shareDoc(id, username.value);
+      modal.hide();
+    });
+
     modal.show();
   }
 }
 
 async function shareDoc(id: number, username: string): Promise<void> {
+  const user: User = JSON.parse(sessionStorage.getItem('user') || '{}')
+  if (username === user.username) {
+    shareError.value = 'You cannot share a document with yourself'
+    return
+  }
   try {
-    const response = await axios.post(`/documents/share/${id}/${username}`)
-    console.log(response)
+    await axios.post(`/documents/share/${id}/${username}`)
     shareError.value = 'Shared successfully'
   } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response) {
@@ -155,18 +190,40 @@ async function shareDoc(id: number, username: string): Promise<void> {
   }
 }
 
+watch(sharedWith, (newVal) => {
+  sharedWith.value = newVal
+})
+
+async function unshare(docId: number, uId: number): Promise<void> {
+  try {
+    await axios.delete(`/documents/share/${docId}/${uId}`)
+    sharedWith.value = sharedWith.value.filter(user => user.uid !== uId)
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+async function unshareAll(docId: number): Promise<void> {
+  try {
+    await axios.delete(`/documents/share/${docId}`)
+    sharedWith.value = []
+  } catch (err) {
+    console.log(err)
+  }
+}
+
 async function deleteDoc(id: number): Promise<void> {
   if (docId.value === 0) {
     return
   }
   try {
-    const response = await axios.delete(`/documents/${id}`)
-    console.log(response)
+    await axios.delete(`/documents/${id}`)
     documents.value = documents.value.filter(doc => doc.docId !== id)
   } catch (err) {
     console.log(err)
   }
 }
+
 </script>
 
 <template>
@@ -236,7 +293,7 @@ async function deleteDoc(id: number): Promise<void> {
       <!-- Modal content -->
       <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
         <!-- Modal header -->
-        <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+        <div class="flex items-center justify-between p-4 md:p-5 rounded-t dark:border-gray-600">
           <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
             Share a document with an other user
           </h3>
@@ -248,6 +305,34 @@ async function deleteDoc(id: number): Promise<void> {
           </button>
         </div>
         <!-- Modal body -->
+        <div class="w-full max-w-md px-8 pt-4 pb-2 bg-white shadow dark:bg-gray-800 dark:border-gray-700">
+          <div class="flex items-center justify-between mb-4">
+            <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white">Shared with</h5>
+            <button v-if="sharedWith.length > 0" id="unshareAll" @click="unshareAll(docId)" class="text-sm font-medium text-blue-600 hover:underline dark:text-blue-500">Unshare all</button>
+            <p v-else class="text-sm font-medium text-gray-500 dark:text-gray-400">No users shared with</p>
+          </div>
+          <div class="flow-root">
+            <ul role="list" :key="sharedWith.length" class="divide-y divide-gray-200 dark:divide-gray-700">
+              <li  v-for="fUser in sharedWith" :key="fUser.uId" class="py-4">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    <i class="pi pi-user text-gray-500 dark:text-gray-400"></i>
+                  </div>
+                  <div class="flex-1 min-w-0 ms-4">
+                    <p class="text-sm font-medium text-gray-900 truncate dark:text-white" v-html="fUser.firstName + ' ' + fUser.lastName" ></p>
+                    <p class="text-sm text-gray-500 truncate dark:text-gray-400" v-html="fUser.username" ></p>
+                  </div>
+                  <div class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white">
+                    <button type="button" @click="unshare(docId, fUser.uid)" class="text-red-600 hover:text-red-800 focus:outline-none">
+                      <span class="sr-only">unshare</span>
+                      <i class="pi pi-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
         <div class="p-4 md:p-5 space-y-4">
           <div>
             <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Username to share with</label>

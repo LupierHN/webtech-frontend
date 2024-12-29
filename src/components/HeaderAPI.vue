@@ -3,12 +3,16 @@ import { Disclosure, DisclosureButton } from '@headlessui/vue'
 import { Bars3Icon, BellIcon, XMarkIcon , UserCircleIcon , PencilIcon} from '@heroicons/vue/24/outline'
 import type { User } from '@/model/user'
 import { logout } from '@/userUtils'
-import { ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { escapeHtml , unescapeHtml} from '@/utils'
 import axios from 'axios'
 import type { Document } from '@/model/document'
+import { checkTokens } from '@/tokenUtils'
 
+onMounted(() => {
+  checkTokens()
+})
 const userJSON = sessionStorage.getItem('user')
 const user: User = userJSON ? JSON.parse(userJSON) : { username: '', email: '', firstName: '', lastName: '' }
 
@@ -93,7 +97,10 @@ watch(searchTerm, (newVal) => {
               <li v-for="doc in searchResults" :key="doc.docId" class="block p-4 text-sm text-gray-700 dark:text-white my-2 mx-4 bg-gray-700 rounded">
                 <RouterLink :to="`/edit/${doc.docId}`" @click="clearSearch" class="flex justify-between" >
                   <p v-html="unescapeHtml(doc.name)" ></p>
-                  <p v-html="unescapeHtml(doc.owner.username)" ></p>
+                  <div class="flex gap-2 items-center text-white">
+                    <p>{{ doc.owner.username }}</p>
+                    <i class="pi pi-crown"></i>
+                  </div>
                 </RouterLink>
               </li>
             </ul>

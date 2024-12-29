@@ -34,7 +34,7 @@ export function logout(): void {
   })
 }
 
-async function getUser(): Promise<void> {
+export async function getUser(): Promise<void> {
   try {
     const response = await axios.get<User>('/auth/get')
     sessionStorage.setItem('user', JSON.stringify(response.data))

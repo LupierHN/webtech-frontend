@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import type { Document } from '@/model/document'
-import axios from 'axios'
 import { unescapeHtml } from '@/utils'
 
 const props = defineProps<{
@@ -10,18 +9,6 @@ const props = defineProps<{
 }>()
 
 const document = ref<Document>(props.doc)
-
-onMounted(() => {
-  if (document.value.docId) {
-    axios.get<string>(`/documents/content/${document.value.docId}`)
-      .then(res => {
-        document.value.content = res.data
-      })
-      .catch(err => {
-        console.log(err)
-      })
-  }
-})
 
 const docTitle = ref<string>(unescapeHtml(document.value.name))
 </script>

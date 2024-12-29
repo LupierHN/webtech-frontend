@@ -1,5 +1,5 @@
 // src/tokenUtils.ts
-import { logout } from '@/userUtils'
+import { getUser, logout } from '@/userUtils'
 import axios, { type AxiosRequestConfig } from 'axios'
 import type { Token } from '@/model/token'
 import { setIsRefreshing} from '@/main'
@@ -41,15 +41,13 @@ export function renewToken(originalRequest: AxiosRequestConfig, resolve: (value:
       setIsRefreshing(false)
     })
 }
-
-export function logError(err: unknown): void {
-  alert('Something went wrong ... check your browser console for more information')
-  console.error(err)
-}
 export async function checkTokens(): Promise<void> {
   const accessToken = localStorage.getItem('accessToken') || ''
   const refreshToken = localStorage.getItem('refreshToken') || ''
-
+  const user = sessionStorage.getItem('user') || ''
+  if (!user) {
+    await getUser()
+  }
 
   if ((!accessToken || !refreshToken) && (window.location.pathname !== '/login' && window.location.pathname !== '/register')) {
     logout();

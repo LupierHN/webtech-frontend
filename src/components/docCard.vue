@@ -2,7 +2,7 @@
 import { defineComponent, type PropType } from 'vue'
 import type { Document } from '@/model/document'
 import 'primeicons/primeicons.css'
-import { unescapeHtml } from '../utils'
+import { unescapeHtml } from '@/utils'
 
 export default defineComponent({
   name: 'DocCard',

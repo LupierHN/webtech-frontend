@@ -197,7 +197,7 @@ watch(sharedWith, (newVal) => {
 async function unshare(docId: number, uId: number): Promise<void> {
   try {
     await axios.delete(`/documents/share/${docId}/${uId}`)
-    sharedWith.value = sharedWith.value.filter(user => user.uid !== uId)
+    sharedWith.value = sharedWith.value.filter(user => user.uId !== uId)
   } catch (err) {
     console.log(err)
   }
@@ -323,7 +323,7 @@ async function deleteDoc(id: number): Promise<void> {
                     <p class="text-sm text-gray-500 truncate dark:text-gray-400" v-html="fUser.username" ></p>
                   </div>
                   <div class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white">
-                    <button type="button" @click="unshare(docId, fUser.uid)" class="text-red-600 hover:text-red-800 focus:outline-none">
+                    <button type="button" @click="unshare(docId, fUser.uId)" class="text-red-600 hover:text-red-800 focus:outline-none">
                       <span class="sr-only">unshare</span>
                       <i class="pi pi-trash"></i>
                     </button>

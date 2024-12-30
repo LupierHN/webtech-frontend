@@ -1,26 +1,34 @@
 <script setup lang="ts">
 import { Disclosure, DisclosureButton } from '@headlessui/vue'
-import { Bars3Icon, BellIcon, XMarkIcon , UserCircleIcon , PencilIcon} from '@heroicons/vue/24/outline'
+import { Bars3Icon, BellIcon, XMarkIcon, UserCircleIcon, PencilIcon } from '@heroicons/vue/24/outline'
 import type { User } from '@/model/user'
 import { logout } from '@/userUtils'
 import { onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
-import { escapeHtml , unescapeHtml} from '@/utils'
+import { escapeHtml, unescapeHtml } from '@/utils'
+import {
+  getTimestampAsString,
+  readAllNotifications,
+  readNotification,
+  notifications
+} from '@/notificationUtils'
 import axios from 'axios'
 import type { Document } from '@/model/document'
 import { checkTokens } from '@/tokenUtils'
-
-onMounted(() => {
-  checkTokens()
-})
-const userJSON = sessionStorage.getItem('user')
-const user: User = userJSON ? JSON.parse(userJSON) : { username: '', email: '', firstName: '', lastName: '' }
-
+import { initFlowbite } from 'flowbite'
 
 const searchTerm = ref<string>('')
 const createDocLink = ref('/edit/')
 const searchResults = ref<Document[]>([])
 const loadingData = ref<boolean>(false)
+
+onMounted( () => {
+  initFlowbite()
+  checkTokens()
+})
+
+const userJSON = sessionStorage.getItem('user')
+const user: User = userJSON ? JSON.parse(userJSON) : { username: '', email: '', firstName: '', lastName: '' }
 
 const clearSearch = async () => {
   //wait for the click event to finish before clearing the search
@@ -29,10 +37,6 @@ const clearSearch = async () => {
     searchTerm.value = ''
   }, 100)
 }
-
-// watch(window.location, () => {
-//   clearSearch()
-// })
 
 watch(searchTerm, (newVal) => {
   const search = escapeHtml(newVal)
@@ -51,6 +55,11 @@ watch(searchTerm, (newVal) => {
     searchResults.value = []
   }
 })
+
+watch(notifications, () => {
+  console.log('Notifications updated')
+})
+
 </script>
 
 <template>
@@ -107,11 +116,36 @@ watch(searchTerm, (newVal) => {
         </div>
         <div class="hidden md:block">
           <div class="ml-4 flex items-center md:ml-6">
-            <button type="button" class="relative rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
-              <span class="absolute -inset-1.5" />
-              <span class="sr-only">View notifications</span>
-              <BellIcon class="size-6" aria-hidden="true" />
+            <!-- Notification button -->
+            <button id="dropdownNotificationButton" data-dropdown-toggle="dropdownNotification" class="relative inline-flex items-center text-sm font-medium text-center text-gray-500 hover:text-gray-900 focus:outline-none dark:hover:text-white dark:text-gray-400" type="button">
+              <BellIcon class="size-6" aria-hidden="true" ></BellIcon>
+              <div v-if="notifications.length > 0" class="absolute block w-3 h-3 bg-red-500 border-2 border-white rounded-full -top-0.5 start-2.5 dark:border-gray-900"></div>
             </button>
+            <!-- Dropdown menu -->
+            <div id="dropdownNotification" class="z-20 hidden w-full max-w-sm bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 dark:divide-gray-500" aria-labelledby="dropdownNotificationButton">
+              <div class="block px-4 py-2 font-medium text-center text-gray-600 rounded-t-lg bg-gray-50 dark:bg-gray-700 dark:text-white">
+                Notifications
+              </div>
+              <div class="divide-y divide-gray-100 dark:divide-gray-700">
+                <RouterLink :to="`/edit/${notify.document.docId}`" @click="readNotification(notify)" v-for="notify in notifications" :key="notify.nId" class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800">
+                  <div class="flex-shrink-0">
+                    <UserCircleIcon class="w-11 h-11 text-gray-500 dark:text-gray-300" aria-hidden="true" />
+                  </div>
+                  <div class="w-full ps-3">
+                    <div class="text-gray-500 text-sm mb-1.5 dark:text-gray-300" v-html="notify.message"></div>
+                    <div class="text-xs text-blue-600 dark:text-blue-500" v-html="getTimestampAsString(notify.timestamp)" ></div>
+                  </div>
+                </RouterLink>
+              </div>
+              <RouterLink to="/shared/with-me" @click="readAllNotifications()" class="block py-2 text-sm font-medium text-center text-gray-900 rounded-b-lg bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white">
+                <div class="inline-flex items-center ">
+                  <svg class="w-4 h-4 me-2 text-gray-500 dark:text-gray-300" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 14">
+                    <path d="M10 0C4.612 0 0 5.336 0 7c0 1.742 3.546 7 10 7 6.454 0 10-5.258 10-7 0-1.664-4.612-7-10-7Zm0 10a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z"/>
+                  </svg>
+                  View all
+                </div>
+              </RouterLink>
+            </div>
 
             <!-- Profile dropdown -->
             <div class="flex items-center">
@@ -123,7 +157,7 @@ watch(searchTerm, (newVal) => {
                   </button>
                 </div>
                 <div class="z-50 hidden my-4 text-base list-none bg-white divide-y divide-gray-100 rounded shadow dark:bg-gray-700 dark:divide-gray-600" id="dropdown-user">
-                  <div class="px-4 py-3" role="none">
+                  <div class="px-4 py-3" role="none" :key="user.username">
                     <p class="text-sm text-gray-900 dark:text-white" role="none" v-html="user.firstName + ' ' + user.lastName" ></p>
                     <p class="text-sm font-medium text-gray-900 truncate dark:text-gray-300" role="none" v-html="user.email" ></p>
                   </div>

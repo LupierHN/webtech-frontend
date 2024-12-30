@@ -18,6 +18,7 @@ import 'froala-editor/js/third_party/image_tui.min'
 import 'froala-editor/css/froala_editor.pkgd.min.css'
 import 'froala-editor/css/froala_style.min.css'
 import { failedQueue, renewToken } from '@/tokenUtils'
+import { getNewNotifications, newNotifications } from '@/notificationUtils'
 
 const app = createApp(App)
 let isRefreshing = false
@@ -25,7 +26,6 @@ let isRefreshing = false
 export function setIsRefreshing(value: boolean): void {
   isRefreshing = value
 }
-// let failedQueue: Array<{ resolve: (value: string) => void; reject: (reason?: any) => void }> = [];
 
 // Register Heroicons globally
 app.component('Bars3Icon', Bars3Icon)
@@ -37,17 +37,6 @@ app.component('FolderIcon', FolderIcon)
 // AXIOS CONFIG
 app.config.globalProperties.$axios = axios
 axios.defaults.baseURL = import.meta.env.VITE_APP_BACKEND_BASE_URL
-
-// const processQueue = (error: unknown, token: string | null) => {
-//   failedQueue.forEach((prom) => {
-//     if (error) {
-//       prom.reject(error)
-//     } else {
-//       prom.resolve(token!)
-//     }
-//   })
-//   failedQueue = []
-// }
 
 axios.interceptors.request.use((config) => {
   console.log('Request made to ' + config.url)
@@ -61,8 +50,15 @@ axios.interceptors.request.use((config) => {
 })
 
 axios.interceptors.response.use(
-  (response: AxiosResponse): AxiosResponse => {
-    return response;
+  (response: AxiosResponse): Promise<AxiosResponse> => {
+    if (response.status === 202 && response.status ) {
+      if (!newNotifications || !sessionStorage.getItem('notifications')) {
+       getNewNotifications().then(() => {
+          return response
+        })
+      }
+    }
+    return Promise.resolve(response)
   },
   (error: AxiosError): Promise<unknown> => {
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean }

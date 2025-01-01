@@ -160,7 +160,7 @@ function registerUser(): void {
                 <input id="terms" aria-describedby="terms" type="checkbox" class="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800" required>
               </div>
               <div class="ml-3 text-sm">
-                <label for="terms" class="font-light text-gray-500 dark:text-gray-300">I accept the <RouterLink to="/terms" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Terms and Conditions</RouterLink></label>
+                <label for="terms" class="text-gray-500 dark:text-gray-300">I accept the <RouterLink to="/terms" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Terms and Conditions</RouterLink></label>
               </div>
             </div>
             <button v-if="loadingData" disabled type="button" class="w-full mx-auto justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 flex items-center">
@@ -168,10 +168,7 @@ function registerUser(): void {
               Loading...
             </button>
             <button v-else type="submit" :disabled="isDisabled" class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Create an account</button>
-            <p class="text-sm font-light text-gray-500 dark:text-gray-400">
-              Already have an account?
-              <RouterLink to="/login" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Login here</RouterLink>
-            </p>
+            <p class="mt-10 text-center text-sm/6 dark:text-gray-300 text-gray-500">Already have an account? <RouterLink to="/login" class="font-semibold text-indigo-600 hover:text-indigo-500 hover:underline">Login here</RouterLink></p>
           </form>
         </div>
       </div>

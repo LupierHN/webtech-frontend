@@ -120,7 +120,7 @@ watch(docTitle, () => {
   </div>
     <div v-if="isSaving" class="px-3 py-1 text-xs font-medium mb-2 leading-none text-center text-blue-800 bg-blue-200 rounded-full animate-pulse dark:bg-blue-900 dark:text-blue-200">saving...</div>
     <div v-else class="px-3 py-1 text-xs font-medium mb-2 leading-none text-center text-green-800 bg-green-200 rounded-full dark:bg-green-900 dark:text-green-200">saved</div>
-    <div class="flex mb-2 gap-2 items-center py-1 text-white">
+    <div class="flex mb-2 gap-2 items-center py-1 text-gray-600 dark:text-white">
       <i class="pi pi-crown"></i>
       <p>{{ doc.owner.username }}</p>
     </div>

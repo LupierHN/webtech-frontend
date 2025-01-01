@@ -25,7 +25,7 @@ onUpdated(() => {
 </script>
 
 <template>
-  <div class="w-dvw h-dvh bg-gray-50 dark:bg-gray-900">
+  <div class="w-dvw h-dvh bg-gray-100 dark:bg-gray-900">
     <RouterView :key="route.fullPath" />
   </div>
 </template>

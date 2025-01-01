@@ -39,6 +39,9 @@ app.config.globalProperties.$axios = axios
 axios.defaults.baseURL = import.meta.env.VITE_APP_BACKEND_BASE_URL
 
 axios.interceptors.request.use((config) => {
+  if (sessionStorage.getItem('logout') === 'true' && !config.url?.includes('/auth')) {
+    return Promise.reject('User logged out')
+  }
   console.log('Request made to ' + config.url)
   console.log('Request Body:', config.data)
   // console.log('Request Headers:', config.headers)

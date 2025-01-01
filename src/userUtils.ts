@@ -25,7 +25,6 @@ export async function login(credentials: { email: string; password: string }): P
 }
 
 export function logout(): void {
-  console.log('Logging out')
   localStorage.clear()
   sessionStorage.clear()
   delete axios.defaults.headers.common['Authorization']

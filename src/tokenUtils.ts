@@ -3,6 +3,8 @@ import { getUser, logout } from '@/userUtils'
 import axios, { type AxiosRequestConfig } from 'axios'
 import type { Token } from '@/model/token'
 import { setIsRefreshing} from '@/main'
+import router from '@/router'
+import { nextTick } from 'vue'
 
 export let failedQueue: Array<{ resolve: (value: string) => void; reject: (reason?: unknown) => void }> = [];
 
@@ -44,12 +46,17 @@ export function renewToken(originalRequest: AxiosRequestConfig, resolve: (value:
 export async function checkTokens(): Promise<void> {
   const accessToken = localStorage.getItem('accessToken') || ''
   const refreshToken = localStorage.getItem('refreshToken') || ''
-  const user = sessionStorage.getItem('user') || ''
-  if (!user) {
-    await getUser()
-  }
-
-  if ((!accessToken || !refreshToken) && (window.location.pathname !== '/login' && window.location.pathname !== '/register')) {
+  if ((!accessToken || !refreshToken) && (router.currentRoute.value.path !== '/login' && router.currentRoute.value.path !== '/register') && sessionStorage.getItem('logout') !== 'true' && router.currentRoute.value.path !== '/terms') {
     logout();
+  }else if (accessToken && refreshToken) {
+    const user = sessionStorage.getItem('user') || ''
+    if (!user) {
+      await getUser()
+
+    }
+  } else if(router.currentRoute.value.path !== '/login' && router.currentRoute.value.path !== '/register' && sessionStorage.getItem('logout') === 'true'&& router.currentRoute.value.path !== '/terms'){
+    nextTick(() => {
+      router.push('/login')
+    })
   }
 }

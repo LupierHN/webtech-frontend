@@ -21,18 +21,18 @@ const openDocs = ref<Document[]>([])
 
 <template>
 
-  <aside id="separator-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
+  <aside id="separator-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0 border-r dark:border-none border-gray-300" aria-label="Sidebar">
     <div class="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
       <RouterLink to="/dashboard">
         <div class="flex justify-center pb-4">
-          <img src="@/assets/logo.png" alt="BlubbDocs" class="w-12 h-12" />
-          <h1 class="text-white font-bold content-center text-xl">BlubbDocs</h1>
+          <div class="w-12 h-12 dark:bg-[url('/src/assets/logo.png')] bg-[url('/src/assets/dark-logo.png')] bg-contain"> </div>
+          <h1 class="text-gray-800 dark:text-white font-bold content-center text-xl">BlubbDocs</h1>
         </div>
       </RouterLink>
       <ul class="space-y-2 font-medium">
 <!--    Dashboard-->
         <li>
-          <RouterLink class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group" to="/dashboard">
+          <RouterLink class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 group" to="/dashboard">
             <ChartPieIcon class="size-6 text-gray-400" ></ChartPieIcon>
             <span class="ms-3">Dashboard</span>
           </RouterLink>
@@ -84,14 +84,14 @@ const openDocs = ref<Document[]>([])
         </li>
 <!--    Shared with Me-->
         <li>
-          <RouterLink to="/shared/with-me" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+          <RouterLink to="/shared/with-me" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 group">
             <ShareIcon class="size-6 text-gray-400" ></ShareIcon>
             <span class="ms-3">Shared with Me</span>
           </RouterLink>
         </li>
 <!--    Shared by Me-->
         <li>
-          <RouterLink to="/shared/by-me" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+          <RouterLink to="/shared/by-me" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 group">
             <DocumentArrowUpIcon class="size-6 text-gray-400" ></DocumentArrowUpIcon>
             <span class="ms-3">Shared by Me</span>
           </RouterLink>

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 import { CheckIcon } from '@heroicons/vue/16/solid'
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import axios from 'axios'
-import router from '@/router'
+import { register } from '@/userUtils'
+import type { User } from '@/model/user'
 
 const error = ref<string | undefined>(undefined)
 const usernameTaken = ref<boolean>(false)
@@ -75,32 +76,25 @@ watch(email, (newVal) => {
 
 function registerUser(): void {
   loadingData.value = true
-  axios
-    .post('/auth/register', { email: email.value, password: password.value, username: username.value, firstName: firstName.value, lastName: lastName.value })
-    .then((res) => {
+  const user: User = {
+    uId: 0,
+    email: email.value,
+    username: username.value,
+    firstName: firstName.value,
+    lastName: lastName.value,
+    password: password.value
+  }
+  register(user)
+    .then(() => {
       loadingData.value = false
-      email.value = ''
-      password.value = ''
-      localStorage.setItem('accessToken', res.data[0].token)
-      localStorage.setItem('refreshToken', res.data[1].token)
-      console.log('User logged in')
-      nextTick(() => {
-        router.push('/dashboard')
-      })
-      error.value = undefined
     })
     .catch((err) => {
       loadingData.value = false
-      console.log(err)
-      if (err.response) {
-        error.value = err.response.data.message
-      } else if (err.request) {
-        error.value = 'No response received from the server. Please check your network connection.'
-      } else {
-        error.value = 'An unexpected error occurred: ' + err.message
-      }
+      error.value = err.message
     })
 }
+
+
 </script>
 
 <template>

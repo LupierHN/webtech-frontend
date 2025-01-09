@@ -2,14 +2,19 @@
 import { Disclosure, DisclosureButton } from '@headlessui/vue'
 import { Bars3Icon, BellIcon, XMarkIcon, UserCircleIcon, PencilIcon } from '@heroicons/vue/24/outline'
 import type { User } from '@/model/user'
+import type { Notification } from '@/model/notification'
 import { logout } from '@/userUtils'
 import { onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { escapeHtml, unescapeHtml } from '@/utils'
-import { getTimestampAsString, readAllNotifications, readNotification, notifications } from '@/notificationUtils'
+import {
+  getTimestampAsString,
+  readAllNotifications,
+  notifications,
+  deleteNotification
+} from '@/notificationUtils'
 import axios from 'axios'
 import type { Document } from '@/model/document'
-import { checkTokens } from '@/tokenUtils'
 import { initFlowbite } from 'flowbite'
 
 const searchTerm = ref<string>('')
@@ -19,7 +24,6 @@ const loadingData = ref<boolean>(false)
 
 onMounted( () => {
   initFlowbite()
-  checkTokens()
 })
 
 const userJSON = sessionStorage.getItem('user')
@@ -54,6 +58,10 @@ watch(searchTerm, (newVal) => {
 watch(notifications, () => {
   console.log('Notifications updated')
 })
+
+const checkNotifications = (notifications: Notification[]) => {
+  return notifications.some(notify => !notify.read)
+};
 
 </script>
 
@@ -112,9 +120,9 @@ watch(notifications, () => {
         <div class="hidden md:block">
           <div class="ml-4 flex items-center md:ml-6">
             <!-- Notification button -->
-            <button id="dropdownNotificationButton" data-dropdown-toggle="dropdownNotification" class="relative inline-flex items-center text-sm font-medium text-center text-gray-500 hover:text-gray-900 focus:outline-none dark:hover:text-white dark:text-gray-400" type="button">
+            <button id="dropdownNotificationButton" @click="readAllNotifications" data-dropdown-toggle="dropdownNotification" class="relative inline-flex items-center text-sm font-medium text-center text-gray-500 hover:text-gray-900 focus:outline-none dark:hover:text-white dark:text-gray-400" type="button">
               <BellIcon class="size-6" aria-hidden="true" ></BellIcon>
-              <div v-if="notifications.length > 0" class="absolute block w-3 h-3 bg-red-500 border-2 border-white rounded-full -top-0.5 start-2.5 dark:border-gray-900"></div>
+              <div v-if="notifications.length > 0 && checkNotifications(notifications)" class="absolute block w-3 h-3 bg-red-500 border-2 border-white rounded-full -top-0.5 start-2.5 dark:border-gray-900"></div>
             </button>
             <!-- Dropdown menu -->
             <div id="dropdownNotification" class="z-20 hidden w-full max-w-sm bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 dark:divide-gray-500" aria-labelledby="dropdownNotificationButton">
@@ -122,7 +130,7 @@ watch(notifications, () => {
                 Notifications
               </div>
               <div class="divide-y divide-gray-100 dark:divide-gray-700">
-                <RouterLink :to="`/edit/${notify.document.docId}`" @click="readNotification(notify)" v-for="notify in notifications" :key="notify.nId" class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800">
+                <RouterLink :to="`/edit/${notify.document.docId}`" @click="deleteNotification(notify)" v-for="notify in notifications" :key="notify.nId" class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800">
                   <div class="flex-shrink-0">
                     <UserCircleIcon class="w-11 h-11 text-gray-500 dark:text-gray-300" aria-hidden="true" />
                   </div>
@@ -132,7 +140,7 @@ watch(notifications, () => {
                   </div>
                 </RouterLink>
               </div>
-              <RouterLink to="/shared/with-me" @click="readAllNotifications()" class="block py-2 text-sm font-medium text-center text-gray-900 rounded-b-lg bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white">
+              <RouterLink to="/shared/with-me" @click="deleteNotification(null)" class="block py-2 text-sm font-medium text-center text-gray-900 rounded-b-lg bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white">
                 <div class="inline-flex items-center ">
                   <svg class="w-4 h-4 me-2 text-gray-500 dark:text-gray-300" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 14">
                     <path d="M10 0C4.612 0 0 5.336 0 7c0 1.742 3.546 7 10 7 6.454 0 10-5.258 10-7 0-1.664-4.612-7-10-7Zm0 10a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z"/>
@@ -152,7 +160,7 @@ watch(notifications, () => {
                   </button>
                 </div>
                 <div class="z-50 hidden my-4 text-base list-none bg-white divide-y divide-gray-100 rounded shadow dark:bg-gray-700 dark:divide-gray-600" id="dropdown-user">
-                  <div class="px-4 py-3" role="none" :key="user.username">
+                  <div class="px-4 py-3" role="none" :key="user.username" v-if="user" >
                     <p class="text-sm text-gray-900 dark:text-white" role="none" v-html="user.firstName + ' ' + user.lastName" ></p>
                     <p class="text-sm font-medium text-gray-900 truncate dark:text-gray-300" role="none" v-html="user.email" ></p>
                   </div>

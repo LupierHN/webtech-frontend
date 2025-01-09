@@ -8,6 +8,12 @@ import { nextTick } from 'vue'
 
 export let failedQueue: Array<{ resolve: (value: string) => void; reject: (reason?: unknown) => void }> = [];
 
+/**
+ * Processes the queue of failed requests after the token is renewed
+ *
+ * @param error
+ * @param token
+ */
 export const processQueue = (error: unknown, token: string | null) => {
   failedQueue.forEach((prom) => {
     if (error) {
@@ -19,6 +25,15 @@ export const processQueue = (error: unknown, token: string | null) => {
   failedQueue = []
 }
 
+/**
+ * Renews the token
+ * - If the token is renewed, it will process the queue
+ * - If the token is not renewed, it will log the user out
+ *
+ * @param originalRequest
+ * @param resolve
+ * @param reject
+ */
 export function renewToken(originalRequest: AxiosRequestConfig, resolve: (value: unknown) => void, reject: (reason?: unknown) => void): void {
   axios
     .post<Token>('/auth/renewToken', { token: localStorage.getItem('refreshToken') })
@@ -43,16 +58,21 @@ export function renewToken(originalRequest: AxiosRequestConfig, resolve: (value:
       setIsRefreshing(false)
     })
 }
+
+/**
+ * Checks if the tokens are still valid
+ * - If the user is not logged in, it will log the user out
+ * - If the user is logged in and the user is not in the session storage, it will get the user
+ */
 export async function checkTokens(): Promise<void> {
   const accessToken = localStorage.getItem('accessToken') || ''
   const refreshToken = localStorage.getItem('refreshToken') || ''
   if ((!accessToken || !refreshToken) && (router.currentRoute.value.path !== '/login' && router.currentRoute.value.path !== '/register') && sessionStorage.getItem('logout') !== 'true' && router.currentRoute.value.path !== '/terms') {
     logout();
-  }else if (accessToken && refreshToken) {
+  }else if (accessToken && refreshToken && router.currentRoute.value.path !== '/login' && router.currentRoute.value.path !== '/register' && router.currentRoute.value.path !== '/terms' && sessionStorage.getItem('user') === null) {
     const user = sessionStorage.getItem('user') || ''
     if (!user) {
       await getUser()
-
     }
   } else if(router.currentRoute.value.path !== '/login' && router.currentRoute.value.path !== '/register' && sessionStorage.getItem('logout') === 'true'&& router.currentRoute.value.path !== '/terms'){
     nextTick(() => {

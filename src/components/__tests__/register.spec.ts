@@ -3,10 +3,13 @@ import { flushPromises, RouterLinkStub, shallowMount } from '@vue/test-utils'
 import RegisterView from '@/views/RegisterView.vue'
 import axios from 'axios';
 import { createRouter, createWebHistory } from 'vue-router'
+import Dashboard from '@/views/DashboardView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
+    { path: '/', redirect: '/dashboard' },
+    { path: '/dashboard', component: Dashboard },
     { path: '/register', component: RegisterView }
   ]
 });

@@ -106,7 +106,7 @@ const checkNotifications = (notifications: Notification[]) => {
                 <RouterLink :to="`/edit/${doc.docId}`" @click="clearSearch" class="flex justify-between" >
                   <p v-html="unescapeHtml(doc.name)" ></p>
                   <div class="flex gap-2 items-center dark:text-white">
-                    <p class="">{{ doc.owner.username }}</p>
+                    <p v-if="doc.owner">{{ doc.owner.username }}</p>
                     <i class="pi pi-crown"></i>
                   </div>
                 </RouterLink>
@@ -164,9 +164,10 @@ const checkNotifications = (notifications: Notification[]) => {
                     <li>
                       <RouterLink to="/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">Dashboard</RouterLink>
                     </li>
-                    <li>
-                      <RouterLink to="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">Profile</RouterLink>
-                    </li>
+<!--                    not implemented yet-->
+<!--                    <li>-->
+<!--                      <RouterLink to="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">Profile</RouterLink>-->
+<!--                    </li>-->
                     <li>
                       <button @click="logout()" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">Sign out</button>
                     </li>

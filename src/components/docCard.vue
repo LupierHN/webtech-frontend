@@ -34,7 +34,7 @@ export default defineComponent({
     </div>
     <div v-if="shared || shared == 'with-me'" class="flex gap-5 items-center py-1">
       <i class="pi pi-crown"></i>
-      <p>{{ doc.owner.username }}</p>
+      <p v-if="doc.owner" >{{ doc.owner.username }}</p>
     </div>
     <div class="flex gap-5 items-center justify-center pt-4 border-t mt-4 border-solid border-gray-500">
       <RouterLink :to="`/edit/${doc.docId}`" class="p-1 border-solid border-2 border-gray-400 dark:border-gray-300 w-9 h-9 text-center rounded  hover:border-gray-300 hover:text-gray-400">

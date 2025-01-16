@@ -41,7 +41,7 @@ async function loadData(): Promise<void> {
           const res = await axios.get<Document[]>('/documents/shared/by')
           documents.value = res.data
         } else {
-          const res = await axios.get<Document[]>(`/documents/shared/with`)
+          const res = await axios.get<Document[]>('/documents/shared/with')
           documents.value = res.data
         }
       }
@@ -223,6 +223,12 @@ async function deleteDoc(id: number): Promise<void> {
     console.log(err)
   }
 }
+
+defineExpose({
+  showDeleteModal,
+  showShareModal,
+  documents
+})
 
 </script>
 

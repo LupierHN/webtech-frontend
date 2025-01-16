@@ -110,6 +110,12 @@ watch(docTitle, () => {
   }
 })
 
+defineExpose({
+  model,
+  docTitle,
+  isSaving
+})
+
 </script>
 
 <template>

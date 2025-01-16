@@ -25,7 +25,6 @@ onMounted(async () => {
 })
 onBeforeRouteUpdate(async (to, from) => {
   if (from.name === 'dashboard') {
-    console.log('from dashboard')
   }
   if (!to.params.id) {
     return {name: 'dashboard'}

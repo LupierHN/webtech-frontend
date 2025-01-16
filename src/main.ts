@@ -42,8 +42,8 @@ axios.interceptors.request.use((config) => {
   if (sessionStorage.getItem('logout') === 'true' && !config.url?.includes('/auth')) {
     return Promise.reject('User logged out')
   }
-  console.log('Request made to ' + config.url)
-  console.log('Request Body:', config.data)
+  // console.log('Request made to ' + config.url)
+  // console.log('Request Body:', config.data)
   // console.log('Request Headers:', config.headers)
   const token = localStorage.getItem('accessToken')
   if (token) {

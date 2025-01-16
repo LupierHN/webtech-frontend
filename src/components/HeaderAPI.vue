@@ -55,10 +55,6 @@ watch(searchTerm, (newVal) => {
   }
 })
 
-watch(notifications, () => {
-  console.log('Notifications updated')
-})
-
 const checkNotifications = (notifications: Notification[]) => {
   return notifications.some(notify => !notify.read)
 };

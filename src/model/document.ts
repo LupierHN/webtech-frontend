@@ -7,5 +7,5 @@ export interface Document {
   docType?: string
   content: string
   docDate: string
-  owner: User
+  owner?: User
 }

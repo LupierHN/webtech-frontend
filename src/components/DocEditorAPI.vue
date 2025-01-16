@@ -13,6 +13,7 @@ const document = ref<Document>(props.doc)
 const model = ref<string>(document.value.content)
 const docTitle = ref<string>(unescapeHtml(document.value.name))
 const isSaving = ref<boolean>(false)
+const inHistory = ref<boolean>(false)
 const config =  reactive({
   toolbarButtons: {
     moreText: {
@@ -32,6 +33,20 @@ const config =  reactive({
   autofocus: true,
   heightMin: 400
 })
+
+/**
+ *
+ * Put the current document in the history
+ * @param docId The ID of the document to put in the history
+ */
+async function putInHistory(docId: number): Promise<void> {
+  try {
+    await axios.post(`/history/${docId}`)
+    inHistory.value = true
+  } catch (err) {
+    console.log(err)
+  }
+}
 
 onMounted(() => {
   initFlowbite()
@@ -62,6 +77,9 @@ async function saveContent(): Promise<void> {
       const content = await axios.put<string>(`/documents/content/${document.value.docId}`, model.value)
       isSaving.value = false
       document.value.content = content.data
+    }
+    if (!inHistory.value) {
+      await putInHistory(document.value.docId)
     }
   }catch (err) {
     isSaving.value = false
@@ -128,7 +146,7 @@ defineExpose({
     <div v-else class="px-3 py-1 text-xs font-medium mb-2 leading-none text-center text-green-800 bg-green-200 rounded-full dark:bg-green-900 dark:text-green-200">saved</div>
     <div class="flex mb-2 gap-2 items-center py-1 text-gray-600 dark:text-white">
       <i class="pi pi-crown"></i>
-      <p>{{ doc.owner.username }}</p>
+      <p v-if="doc.owner" >{{ doc.owner.username }}</p>
     </div>
   </div>
   <froala id="edit" :tag="'textarea'" :config="config" v-model:value="model"></froala>

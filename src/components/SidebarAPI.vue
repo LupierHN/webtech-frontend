@@ -3,19 +3,40 @@ import { onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { ChartPieIcon, FolderIcon, BookOpenIcon, UsersIcon, DocumentArrowUpIcon, ShareIcon } from '@heroicons/vue/24/solid'
 import { initFlowbite } from 'flowbite'
-import type { Document } from '@/model/document'
+import axios from 'axios'
+import type { HistoryElement } from '@/model/historyElement'
 
-const openDocs = ref<Document[]>([])
-  //temporary data for testing
+const openDocs = ref<HistoryElement[]>([])
 
-  // This function removes a document from the list of open documents
-  function removeDoc(id: number) {
-    openDocs.value = openDocs.value.filter(doc => doc.docId !== id)
+/**
+ * This function removes a document from the list of open documents
+ * @param id
+ */
+async function removeHistElement(id: number): Promise<void> {
+  try {
+    await axios.delete(`/history/${id}`)
+    openDocs.value = openDocs.value.filter(hist => hist.histId !== id)
+  }catch (err) {
+    console.error(err)
   }
+}
 
-  onMounted(() => {
-    initFlowbite()
-  })
+/**
+ * Fetches the open documents from the server
+ */
+async function fetchOpenDocs(): Promise<void> {
+  try {
+    const res = await axios.get<HistoryElement[]>('/history')
+    openDocs.value = res.data
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+onMounted( async () => {
+  await fetchOpenDocs()
+  initFlowbite()
+})
 
 </script>
 
@@ -57,16 +78,16 @@ const openDocs = ref<Document[]>([])
           <button type="button" class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700" aria-controls="dropdown-example" data-collapse-toggle="dropdown-example">
             <BookOpenIcon class="size-6 text-gray-400" ></BookOpenIcon>
             <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">Open Documents</span>
-            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+            <svg class="w-3 h-3 mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
               <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
             </svg>
           </button>
           <ul id="dropdown-example" class="hidden py-2 space-y-2">
-            <li v-for="doc in openDocs" :key="doc.docId" class="flex group group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700 rounded-lg text-gray-900 transition duration-75 p-2 pl-0">
-              <RouterLink :to="`/edit/${doc}`" class="flex items-center w-full pl-11 mr-1">
-                {{ doc.name }}
+            <li v-for="hist in openDocs" :key="hist.histId" class="flex group group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700 rounded-lg text-gray-900 transition duration-75 p-2 pl-0">
+              <RouterLink :to="`/edit/${hist.document.docId}`" class="flex items-center w-full pl-11 mr-1">
+                {{ hist.document.name }}
               </RouterLink>
-              <button @click="removeDoc(doc.docId)" class="ms-auto text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
+              <button @click="removeHistElement(hist.histId)" class="ms-auto text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100 mr-2">
                 <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                   <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>

@@ -23,10 +23,11 @@ export default defineComponent({
       <i class="pi pi-file"></i>
       <p>{{ doc.docType }}</p>
     </div>
-    <div class="flex gap-5 items-center py-1">
-      <i class="pi pi-folder"></i>
-      <p>{{ doc.path }}</p>
-    </div>
+<!--     Not implemented yet-->
+<!--    <div class="flex gap-5 items-center py-1">-->
+<!--      <i class="pi pi-folder"></i>-->
+<!--      <p>{{ doc.path }}</p>-->
+<!--    </div>-->
     <div class="flex gap-5 items-center py-1">
       <i class="pi pi-calendar"></i>
       <p>{{ doc.docDate }}</p>

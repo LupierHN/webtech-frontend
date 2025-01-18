@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { Disclosure, DisclosureButton } from '@headlessui/vue'
-import { Bars3Icon, BellIcon, XMarkIcon, UserCircleIcon, PencilIcon } from '@heroicons/vue/24/outline'
+import { BellIcon, UserCircleIcon, PencilIcon } from '@heroicons/vue/24/outline'
 import type { User } from '@/model/user'
 import type { Notification } from '@/model/notification'
 import { logout } from '@/userUtils'
@@ -62,14 +61,21 @@ const checkNotifications = (notifications: Notification[]) => {
 </script>
 
 <template>
-  <Disclosure as="nav" class="dark:bg-gray-800 bg-gray-50 sm:ml-64 border-b border-gray-300 dark:border-none" v-slot="{ open }">
+  <nav class="dark:bg-gray-800 bg-gray-50 sm:ml-64 border-b border-gray-300 dark:border-none">
     <div class="mx-auto px-4">
       <div class="flex items-center justify-between p-4">
 
         <!-- Edit options -->
-        <div class="mt-5 flex lg:ml-4 lg:mt-0">
-          <span class="hidden sm:block">
-            <RouterLink :to="createDocLink" class="inline-flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-semibold rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+        <div class="flex lg:ml-4 lg:mt-0">
+          <!--  TODO: ResponsiveDesign-->
+          <button data-drawer-target="separator-sidebar" data-drawer-toggle="separator-sidebar" aria-controls="separator-sidebar" type="button" class="inline-flex items-center p-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
+            <span class="sr-only">Open sidebar</span>
+            <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
+            </svg>
+          </button>
+          <span class="hidden xl:block" >
+            <RouterLink :to="createDocLink" class="inline-flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-semibold rounded-lg text-sm px-5 py-2.5 me-2 mb-2 mt-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
               <PencilIcon class="-ml-0.5 mr-1.5 size-5 text-white" aria-hidden="true" />
               Create
             </RouterLink>
@@ -78,7 +84,7 @@ const checkNotifications = (notifications: Notification[]) => {
 
         <div class="flex items-center w-full max-w-2xl relative" style="margin-left: -5.5rem">
           <div class="hidden md:block w-full">
-            <form class="max-w-md mx-auto">
+            <form class="max-w-2/3 w-112 mx-auto">
               <label for="default-search" class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
               <div class="relative">
                 <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
@@ -113,7 +119,7 @@ const checkNotifications = (notifications: Notification[]) => {
               </li>
             </ul>
         </div>
-        <div class="hidden md:block">
+        <div class="block">
           <div class="ml-4 flex items-center md:ml-6">
             <!-- Notification button -->
             <button id="dropdownNotificationButton" @click="readAllNotifications" data-dropdown-toggle="dropdownNotification" class="relative inline-flex items-center text-sm font-medium text-center text-gray-500 hover:text-gray-900 focus:outline-none dark:hover:text-white dark:text-gray-400" type="button">
@@ -177,18 +183,10 @@ const checkNotifications = (notifications: Notification[]) => {
             </div>
           </div>
         </div>
-        <div class="-mr-2 flex md:hidden">
-          <!-- Mobile menu button -->
-          <DisclosureButton class="relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
-            <span class="absolute -inset-0.5" />
-            <span class="sr-only">Open main menu</span>
-            <Bars3Icon v-if="!open" class="block size-6" aria-hidden="true" />
-            <XMarkIcon v-else class="block size-6" aria-hidden="true" />
-          </DisclosureButton>
-        </div>
+
       </div>
     </div>
-  </Disclosure>
+  </nav>
 </template>
 
 <style scoped>

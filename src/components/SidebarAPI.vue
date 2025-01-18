@@ -5,8 +5,10 @@ import { ChartPieIcon, FolderIcon, BookOpenIcon, UsersIcon, DocumentArrowUpIcon,
 import { initFlowbite } from 'flowbite'
 import axios from 'axios'
 import type { HistoryElement } from '@/model/historyElement'
+import { PencilIcon } from '@heroicons/vue/24/outline'
 
 const openDocs = ref<HistoryElement[]>([])
+const createDocLink = ref('/edit/')
 
 /**
  * This function removes a document from the list of open documents
@@ -50,6 +52,14 @@ onMounted( async () => {
           <h1 class="text-gray-800 dark:text-white font-bold content-center text-xl">BlubbDocs</h1>
         </div>
       </RouterLink>
+      <div class="flex items-center justify-center mt-3 mx-auto mb-4">
+        <span class="xl:hidden block">
+            <RouterLink :to="createDocLink" class="inline-flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-semibold rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+              <PencilIcon class="-ml-0.5 mr-1.5 size-5 text-white" aria-hidden="true" />
+              Create
+            </RouterLink>
+        </span>
+      </div>
       <ul class="space-y-2 font-medium">
 <!--    Dashboard-->
         <li>

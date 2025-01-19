@@ -1,45 +1,14 @@
 # webtech-frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+## Blubbdocs
 
-## Recommended IDE Setup
+Blubbdocs ist ein einfacher Texteditor, der es ermöglicht, Texte zu schreiben, zu speichern und zu teilen.
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+Nach dem Registrieren lassen sich über den Create Button neue Dokumente anlegen. Diese können mit einem Individuellen Namen versehen werden und mit HTML kompatiblen Texten gefüllt werden.
+Das Speichern erfolgt automatisch und der Text wird in der Datenbank gespeichert. Über den Share Button kann das Dokument mit anderen Benutzern geteilt werden. Diese können das Dokument dann lesen und bearbeiten.
 
-## Type Support for `.vue` Imports in TS
+Hierfür gibt es in der Sidebar die Seiten Dashboard (für die eigenen Dokumente), Shared-By-Me (für die von mit geteilten Dokumente) und Shared-With-Me (für die mir geteilten Dokumente).
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+Nach dem Teilen bekommt der Empfänger eine Benachrichtigung und kann auch über diese das Dokument aufrufen.
 
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-npm run test:unit
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+Die Suche durchsucht alle Dokumente (auch mit geteilte) und zeigt die Ergebnisse in einer Liste an.
